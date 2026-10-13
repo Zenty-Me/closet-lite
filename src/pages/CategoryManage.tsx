@@ -114,7 +114,7 @@ export function CategoryManage() {
         ← 返回
       </button>
       <h1 className="page-title">管理分类</h1>
-      <p className="page-sub">主分类固定；可为每一类自定义子分类（如上衣 → 开衫）</p>
+      <p className="page-sub">主分类固定；子分类可自定义（如上衣 → 开衫）。删除标签不会强制删单品。</p>
 
       <div className="form-group">
         <div className="form-label">主分类</div>

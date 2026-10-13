@@ -4,10 +4,12 @@ import {
   normalizeItem,
   normalizeOutfit,
   normalizeWearLog,
+  normalizeWishlist,
   type ClothingItem,
   type Inspiration,
   type Outfit,
   type WearLog,
+  type WishlistItem,
 } from '../types'
 
 interface WardrobeDB extends DBSchema {
@@ -31,10 +33,15 @@ interface WardrobeDB extends DBSchema {
     value: Inspiration
     indexes: { 'by-created': number }
   }
+  wishlist: {
+    key: string
+    value: WishlistItem
+    indexes: { 'by-created': number }
+  }
 }
 
 const DB_NAME = 'qing-yichu'
-const DB_VERSION = 6
+const DB_VERSION = 7
 
 let dbPromise: Promise<IDBPDatabase<WardrobeDB>> | null = null
 
@@ -312,9 +319,43 @@ export async function clearAllData(): Promise<void> {
   await db.clear('items')
   await db.clear('outfits')
   await db.clear('wearLogs')
-  if (db.objectStoreNames.contains('inspirations')) {
-    await db.clear('inspirations')
-  }
+  if (db.objectStoreNames.contains('inspirations')) await db.clear('inspirations')
+  if (db.objectStoreNames.contains('wishlist')) await db.clear('wishlist')
+}
+
+// —— Wishlist ——
+export async function getAllWishlist(): Promise<WishlistItem[]> {
+  const db = await getDB()
+  if (!db.objectStoreNames.contains('wishlist')) return []
+  const list = (await db.getAllFromIndex('wishlist', 'by-created')).map((w) =>
+    normalizeWishlist(w as WishlistItem),
+  )
+  return list.reverse()
+}
+
+export async function getWishlistItem(id: string): Promise<WishlistItem | undefined> {
+  const db = await getDB()
+  if (!db.objectStoreNames.contains('wishlist')) return undefined
+  const row = await db.get('wishlist', id)
+  return row ? normalizeWishlist(row as WishlistItem) : undefined
+}
+
+export async function saveWishlistItem(item: WishlistItem): Promise<void> {
+  const db = await getDB()
+  await db.put('wishlist', normalizeWishlist(item))
+}
+
+export async function deleteWishlistItem(id: string): Promise<void> {
+  const db = await getDB()
+  await db.delete('wishlist', id)
+}
+
+export async function countWishlist(): Promise<number> {
+  return (await getAllWishlist()).length
+}
+
+export async function getLaundryItems(): Promise<ClothingItem[]> {
+  return (await getAllItems()).filter((i) => i.needsWash)
 }
 
 export async function importAllData(
@@ -322,15 +363,26 @@ export async function importAllData(
   outfits: Outfit[],
   wearLogs: WearLog[],
   inspirations: Inspiration[] = [],
+  wishlist: WishlistItem[] = [],
 ): Promise<void> {
   const db = await getDB()
-  const storeNames = ['items', 'outfits', 'wearLogs', 'inspirations'] as const
-  const tx = db.transaction([...storeNames], 'readwrite')
-  await Promise.all([
+  const names: Array<'items' | 'outfits' | 'wearLogs' | 'inspirations' | 'wishlist'> = [
+    'items',
+    'outfits',
+    'wearLogs',
+    'inspirations',
+  ]
+  if (db.objectStoreNames.contains('wishlist')) names.push('wishlist')
+  const tx = db.transaction(names, 'readwrite')
+  const ops: Promise<unknown>[] = [
     ...items.map((i) => tx.objectStore('items').put(normalizeItem(i))),
     ...outfits.map((o) => tx.objectStore('outfits').put(normalizeOutfit(o))),
     ...wearLogs.map((l) => tx.objectStore('wearLogs').put(normalizeWearLog(l))),
     ...inspirations.map((i) => tx.objectStore('inspirations').put(normalizeInspiration(i))),
-    tx.done,
-  ])
+  ]
+  if (db.objectStoreNames.contains('wishlist')) {
+    ops.push(...wishlist.map((w) => tx.objectStore('wishlist').put(normalizeWishlist(w))))
+  }
+  ops.push(tx.done)
+  await Promise.all(ops)
 }

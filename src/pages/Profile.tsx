@@ -10,6 +10,7 @@ import {
   getAllOutfits,
   getAllWearLogs,
   importAllData,
+  getAllWishlist,
 } from '../db'
 import {
   normalizeInspiration,
@@ -17,12 +18,14 @@ import {
   normalizeOutfit,
   normalizeWearLog,
   type BackupData,
-  type BackupDataV5,
+  type BackupDataV6,
   type ClothingItem,
   type Inspiration,
   type Outfit,
   type SeasonFilter,
   type WearLog,
+  type WishlistItem,
+  normalizeWishlist,
   SEASON_FILTERS,
 } from '../types'
 import { base64ToBlob, blobToBase64 } from '../utils/image'
@@ -74,11 +77,12 @@ export function Profile() {
   const exportBackup = async () => {
     setBusy(true)
     try {
-      const [items, outfits, wearLogs, inspirations] = await Promise.all([
+      const [items, outfits, wearLogs, inspirations, wishlist] = await Promise.all([
         getAllItems(true),
         getAllOutfits(true),
         getAllWearLogs(),
         getAllInspirations(true),
+        getAllWishlist(),
       ])
       const exportedItems = await Promise.all(
         items.map(async (it) => {
@@ -117,14 +121,24 @@ export function Profile() {
           return { ...rest, imageBase64: await blobToBase64(imageBlob) }
         }),
       )
-      const data: BackupDataV5 = {
-        version: 5,
+      const exportedWish = await Promise.all(
+        wishlist.map(async (w) => {
+          const { imageBlob, ...rest } = w
+          return {
+            ...rest,
+            imageBase64: imageBlob ? await blobToBase64(imageBlob) : undefined,
+          }
+        }),
+      )
+      const data: BackupDataV6 = {
+        version: 6,
         exportedAt: new Date().toISOString(),
         items: exportedItems,
         outfits: exportedOutfits,
         wearLogs: exportedLogs,
         inspirations: exportedInsp,
         subcategoryTaxonomy: loadSettings().subcategoryTaxonomy,
+        wishlist: exportedWish,
       }
       const blob = new Blob([JSON.stringify(data)], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
@@ -144,7 +158,7 @@ export function Profile() {
     setBusy(true)
     try {
       const data = JSON.parse(await file.text()) as BackupData
-      if (!data || ![1, 2, 3, 4, 5].includes(data.version) || !Array.isArray(data.items)) {
+      if (!data || ![1, 2, 3, 4, 5, 6].includes(data.version) || !Array.isArray(data.items)) {
         throw new Error('invalid')
       }
       if (
@@ -204,7 +218,7 @@ export function Profile() {
         }),
       )
       let inspirations: Inspiration[] = []
-      if ((data.version === 2 || data.version === 3 || data.version === 4 || data.version === 5) && 'inspirations' in data && Array.isArray(data.inspirations)) {
+      if ((data.version === 2 || data.version === 3 || data.version === 4 || data.version === 5 || data.version === 6) && 'inspirations' in data && Array.isArray(data.inspirations)) {
         inspirations = await Promise.all(
           data.inspirations.map(async (i) => {
             const { imageBase64, ...rest } = i
@@ -218,8 +232,23 @@ export function Profile() {
           }),
         )
       }
-      await importAllData(items, outfits, wearLogs, inspirations)
-      if (data.version === 5 && 'subcategoryTaxonomy' in data && data.subcategoryTaxonomy) {
+      let wishlistRows: WishlistItem[] = []
+      if (data.version === 6 && 'wishlist' in data && Array.isArray(data.wishlist)) {
+        wishlistRows = await Promise.all(
+          data.wishlist.map(async (w) => {
+            const { imageBase64, ...rest } = w
+            return normalizeWishlist({
+              ...rest,
+              imageBlob: imageBase64 ? await base64ToBlob(imageBase64) : undefined,
+              id: rest.id,
+              createdAt: rest.createdAt,
+              updatedAt: rest.updatedAt,
+            })
+          }),
+        )
+      }
+      await importAllData(items, outfits, wearLogs, inspirations, wishlistRows)
+      if ((data.version === 5 || data.version === 6) && 'subcategoryTaxonomy' in data && data.subcategoryTaxonomy) {
         const cur = loadSettings()
         const merged = { ...cur.subcategoryTaxonomy }
         for (const [k, list] of Object.entries(data.subcategoryTaxonomy)) {
@@ -299,6 +328,14 @@ export function Profile() {
       {itemCount > 0 && <WearInsight top={top} forgotten={forgotten} />}
 
       <div className="menu-list">
+        <button type="button" className="menu-item" onClick={() => navigate('/wishlist')}>
+          <span>想买</span>
+          <span>心愿单</span>
+        </button>
+        <button type="button" className="menu-item" onClick={() => navigate('/laundry')}>
+          <span>待洗</span>
+          <span>洗衣篮</span>
+        </button>
         <button type="button" className="menu-item" onClick={() => navigate('/categories')}>
           <span>管理分类</span>
           <span>子分类</span>
@@ -309,11 +346,11 @@ export function Profile() {
         </button>
         <button type="button" className="menu-item" disabled={busy} onClick={() => void exportBackup()}>
           <span>导出备份</span>
-          <span>JSON v5</span>
+          <span>JSON v6</span>
         </button>
         <button type="button" className="menu-item" disabled={busy} onClick={() => fileRef.current?.click()}>
           <span>导入备份</span>
-          <span>支持 v1–v5</span>
+          <span>支持 v1–v6</span>
         </button>
         <button type="button" className="menu-item" onClick={() => void clearData()}>
           <span style={{ color: 'var(--danger)' }}>清空全部数据</span>
@@ -350,7 +387,7 @@ export function Profile() {
       </div>
 
       <p style={{ textAlign: 'center', marginTop: 24, fontSize: '0.75rem', color: 'var(--muted)' }}>
-        轻衣橱 v1.7
+        轻衣橱 v1.8
       </p>
 
       {toast && <Toast message={toast} onClose={() => setToast('')} />}

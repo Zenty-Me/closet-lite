@@ -40,6 +40,7 @@ export function ItemForm() {
   const [tempMin, setTempMin] = useState('')
   const [tempMax, setTempMax] = useState('')
   const [status, setStatus] = useState<'使用中' | '闲置' | '收纳中' | '已淘汰'>('使用中')
+  const [needsWash, setNeedsWash] = useState(false)
   const [imageBlob, setImageBlob] = useState<Blob | null>(null)
   const [originalBlob, setOriginalBlob] = useState<Blob | null>(null)
   const [saving, setSaving] = useState(false)
@@ -76,6 +77,7 @@ export function ItemForm() {
       setTempMin(item.tempMin != null ? String(item.tempMin) : '')
       setTempMax(item.tempMax != null ? String(item.tempMax) : '')
       setStatus(item.status)
+      setNeedsWash(Boolean(item.needsWash))
       setImageBlob(item.imageBlob)
       setOriginalBlob(item.originalBlob ?? null)
       const logs = await getAllWearLogs()
@@ -130,6 +132,7 @@ export function ItemForm() {
       tempMin: tempMin.trim() === '' ? null : Number(tempMin),
       tempMax: tempMax.trim() === '' ? null : Number(tempMax),
       status,
+      needsWash,
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
       deletedAt: null,
@@ -338,6 +341,11 @@ export function ItemForm() {
           ))}
         </div>
       </div>
+
+      <label className="toggle-row" style={{ marginBottom: 16 }}>
+        <span>待洗</span>
+        <input type="checkbox" checked={needsWash} onChange={(e) => setNeedsWash(e.target.checked)} />
+      </label>
 
       <div className="form-group">
         <label className="form-label" htmlFor="notes">

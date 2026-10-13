@@ -8,6 +8,7 @@ import {
   uid,
 } from '../db'
 import type { ClothingItem } from '../types'
+import { OCCASIONS } from '../types'
 import { useBlobUrl } from '../hooks/useBlobUrl'
 import { Toast } from '../components/Toast'
 import { EmptyState } from '../components/EmptyState'
@@ -158,28 +159,24 @@ export function OutfitForm() {
       <h1 className="page-title">{isNew ? '创建搭配' : '编辑搭配'}</h1>
 
       <div className="form-group">
-        <label className="form-label" htmlFor="oname">
-          名称
-        </label>
+        <div className="form-label">场合</div>
+        <div className="chip-select" style={{ marginBottom: 8 }}>
+          {OCCASIONS.map((o) => (
+            <button
+              key={o}
+              type="button"
+              className={`chip${occasion === o ? ' active' : ''}`}
+              onClick={() => setOccasion(o)}
+            >
+              {o}
+            </button>
+          ))}
+        </div>
         <input
-          id="oname"
-          className="form-input"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="例如：周末休闲"
-        />
-      </div>
-
-      <div className="form-group">
-        <label className="form-label" htmlFor="occ">
-          场合（可选）
-        </label>
-        <input
-          id="occ"
           className="form-input"
           value={occasion}
           onChange={(e) => setOccasion(e.target.value)}
-          placeholder="通勤 / 约会 / 运动…"
+          placeholder="或自定义场合"
         />
       </div>
 
