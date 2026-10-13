@@ -27,8 +27,8 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: 'updated', label: '最近更新' },
   { key: 'wear', label: '穿着次数' },
   { key: 'name', label: '名称' },
-  { key: 'priceDesc', label: '价格高→低' },
-  { key: 'priceAsc', label: '价格低→高' },
+  { key: 'priceDesc', label: '价格从高到低' },
+  { key: 'priceAsc', label: '价格从低到高' },
 ]
 
 const BATCH_CAP = 30
