@@ -1,34 +1,35 @@
-/* 轻衣橱 — Linen Closet Lookbook
-   Photos first. Warm paper + deep olive. No purple SaaS chrome. */
+/* 轻衣橱 — White Minimal Closet
+   Clean light gray canvas + white cards + system blue. Photos first. */
 
 :root {
-  --bg: #f3efe7;
-  --paper: #f3efe7;
-  --surface: #fffbf5;
-  --ink: #1c1916;
-  --muted: #6e675e;
-  --line: #ddd5c8;
-  --accent: #3d4a2e;
-  --accent-soft: #e4e8db;
-  --danger: #a63d3d;
-  --danger-soft: #f5e6e4;
-  --radius: 6px;
-  --radius-lg: 10px;
+  --bg: #f2f2f2;
+  --paper: #f5f5f5;
+  --surface: #ffffff;
+  --ink: #1a1a1a;
+  --muted: #8e8e93;
+  --line: #e5e5ea;
+  --accent: #3478f6;
+  --accent-soft: #e8f0fe;
+  --success: #34c759;
+  --success-soft: #e8f8ee;
+  --danger: #ff3b30;
+  --danger-soft: #ffebe9;
+  --radius: 12px;
+  --radius-lg: 16px;
   --nav-h: 56px;
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-t: env(safe-area-inset-top, 0px);
-  --font-serif: 'Noto Serif SC', 'Songti SC', serif;
   --font-ui: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC',
     'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-  --font-display: 'Noto Serif SC', 'Songti SC', 'Noto Serif CJK SC', serif;
-  /* legacy aliases so older class rules keep working if any remain */
+  --font-display: var(--font-ui);
+  --font-serif: var(--font-ui);
   --primary: var(--accent);
-  --primary-dark: #2c3621;
+  --primary-dark: #2a62d4;
   --primary-soft: var(--accent-soft);
   --text: var(--ink);
   --text-secondary: var(--muted);
   --border: var(--line);
-  --shadow: none;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 *,
@@ -102,11 +103,11 @@ img {
 }
 
 .page-title {
-  font-family: var(--font-display);
-  font-size: 1.625rem;
+  font-family: var(--font-ui);
+  font-size: 1.375rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  line-height: 1.3;
+  letter-spacing: 0;
+  line-height: 1.35;
   margin-bottom: 4px;
   color: var(--ink);
 }
@@ -128,7 +129,7 @@ img {
   max-width: 480px;
   height: calc(var(--nav-h) + var(--safe-b));
   padding-bottom: var(--safe-b);
-  background: var(--surface);
+  background: #ffffff;
   border-top: 1px solid var(--line);
   display: flex;
   z-index: 100;
@@ -177,7 +178,7 @@ img {
 
 .btn-primary {
   background: var(--accent);
-  color: #fffbf5;
+  color: #ffffff;
 }
 
 .btn-primary:active {
@@ -221,19 +222,19 @@ img {
   position: fixed;
   right: max(16px, calc(50% - 240px + 16px));
   bottom: calc(var(--nav-h) + var(--safe-b) + 14px);
-  width: 52px;
-  height: 52px;
-  border-radius: var(--radius-lg);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
   background: var(--accent);
-  color: #fffbf5;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 90;
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   line-height: 1;
   font-weight: 300;
-  box-shadow: none;
+  box-shadow: 0 4px 12px rgba(52, 120, 246, 0.35);
 }
 
 .fab:active {
@@ -293,7 +294,7 @@ img {
   left: 6px;
   bottom: 6px;
   background: rgba(28, 25, 22, 0.7);
-  color: #fffbf5;
+  color: #ffffff;
   font-size: 0.625rem;
   font-weight: 500;
   padding: 3px 7px;
@@ -329,7 +330,7 @@ img {
 
 .chip.active {
   background: var(--accent);
-  color: #fffbf5;
+  color: #ffffff;
   border-color: var(--accent);
   font-weight: 500;
 }
@@ -354,7 +355,7 @@ img {
 }
 
 .empty h3 {
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
   font-size: 1.125rem;
   font-weight: 600;
   margin-bottom: 6px;
@@ -458,10 +459,10 @@ img {
   background: var(--surface);
   border-radius: var(--radius);
   border: 1px solid var(--line);
-  padding: 12px;
+  padding: 14px;
   text-align: left;
   width: 100%;
-  box-shadow: none;
+  box-shadow: var(--shadow);
 }
 
 .outfit-card-title {
@@ -483,12 +484,13 @@ img {
 }
 
 .outfit-thumb {
-  width: 52px;
-  height: 68px;
-  border-radius: 4px;
-  object-fit: cover;
+  width: 56px;
+  height: 72px;
+  border-radius: 8px;
+  object-fit: contain;
   flex-shrink: 0;
-  background: #ebe4d8;
+  background: #ffffff;
+  border: 1px solid var(--line);
 }
 
 .picker-grid {
@@ -528,7 +530,7 @@ img {
   height: 20px;
   border-radius: 3px;
   background: var(--accent);
-  color: #fffbf5;
+  color: #ffffff;
   font-size: 0.7rem;
   display: flex;
   align-items: center;
@@ -544,7 +546,7 @@ img {
 }
 
 .cal-header h2 {
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
   font-size: 1.0625rem;
   font-weight: 600;
 }
@@ -604,7 +606,7 @@ img {
 
 .cal-day.selected {
   background: var(--accent);
-  color: #fffbf5;
+  color: #ffffff;
 }
 
 .cal-day .dot {
@@ -616,7 +618,7 @@ img {
 }
 
 .cal-day.selected .dot {
-  background: #fffbf5;
+  background: #ffffff;
 }
 
 .cal-detail {
@@ -644,7 +646,7 @@ img {
 }
 
 .stat-num {
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
   font-size: 1.375rem;
   font-weight: 600;
   color: var(--ink);
@@ -696,7 +698,7 @@ img {
 }
 
 .help-box h4 {
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
   margin-bottom: 8px;
   font-size: 0.9375rem;
   font-weight: 600;
@@ -738,7 +740,7 @@ img {
 }
 
 .sheet-title {
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
   font-size: 1.0625rem;
   font-weight: 600;
   margin-bottom: 14px;
@@ -798,7 +800,7 @@ img {
   left: 50%;
   transform: translateX(-50%);
   background: var(--ink);
-  color: #fffbf5;
+  color: #ffffff;
   padding: 10px 18px;
   border-radius: var(--radius);
   font-size: 0.8125rem;
@@ -834,7 +836,7 @@ img {
 }
 
 .suggest-head h3 {
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
   font-size: 1rem;
   font-weight: 600;
 }
@@ -893,7 +895,7 @@ img {
 }
 
 .insight-title {
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
   font-size: 1rem;
   font-weight: 600;
   margin-bottom: 4px;
@@ -1174,7 +1176,7 @@ img {
 .crop-box {
   position: absolute;
   border: 2px solid var(--accent);
-  background: rgba(61, 74, 46, 0.15);
+  background: rgba(52, 120, 246, 0.18);
   box-sizing: border-box;
   pointer-events: none;
 }
@@ -1262,9 +1264,9 @@ img {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 2px solid #fffbf5;
+  border: 2px solid #ffffff;
   background: rgba(28, 25, 22, 0.25);
-  color: #fffbf5;
+  color: #ffffff;
   font-size: 0.75rem;
   font-weight: 700;
   display: flex;
@@ -1328,7 +1330,7 @@ img {
   padding-left: 26px;
 }
 
-/* —— 分组衣橱 + 单品详情（linen/olive） —— */
+/* —— 分组衣橱 + 单品详情（white minimal） —— */
 .wardrobe-topbar {
   display: flex;
   align-items: center;
@@ -1341,7 +1343,7 @@ img {
 .wardrobe-title {
   flex: 1;
   text-align: center;
-  font-family: var(--font-serif);
+  font-family: var(--font-ui);
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--ink);
@@ -1505,7 +1507,7 @@ img {
   margin: 0;
   font-size: 1.0625rem;
   font-weight: 600;
-  font-family: var(--font-serif);
+  font-family: var(--font-ui);
 }
 .detail-topbar-right {
   display: flex;
@@ -1540,7 +1542,7 @@ img {
   bottom: 10px;
   border: none;
   background: rgba(28, 25, 22, 0.55);
-  color: #fffbf5;
+  color: #ffffff;
   font-size: 0.75rem;
   padding: 6px 12px;
   border-radius: 999px;
@@ -1632,20 +1634,20 @@ img {
   color: var(--accent);
 }
 .status-pill.status-使用中 {
-  background: #e4e8db;
-  color: #3d4a2e;
+  background: var(--success-soft);
+  color: #1f8a3c;
 }
 .status-pill.status-闲置 {
-  background: #ebe6dc;
-  color: #6e675e;
+  background: #f2f2f7;
+  color: #636366;
 }
 .status-pill.status-收纳中 {
-  background: #e8e4d8;
-  color: #5a5348;
+  background: #eef3ff;
+  color: #3a6fd8;
 }
 .status-pill.status-已淘汰 {
-  background: #e8e0dc;
-  color: #8a5a4a;
+  background: var(--danger-soft);
+  color: #c0392b;
 }
 
 .detail-action-bar {
@@ -1797,8 +1799,8 @@ img {
   font-size: 0.625rem;
   padding: 2px 6px;
   border-radius: 999px;
-  background: rgba(61, 74, 46, 0.88);
-  color: #fffbf5;
+  background: rgba(52, 120, 246, 0.92);
+  color: #ffffff;
   line-height: 1.3;
 }
 .subcat-manage-list {

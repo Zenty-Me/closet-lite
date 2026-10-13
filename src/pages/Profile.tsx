@@ -350,7 +350,7 @@ export function Profile() {
       </div>
 
       <p style={{ textAlign: 'center', marginTop: 24, fontSize: '0.75rem', color: 'var(--muted)' }}>
-        轻衣橱 v1.6
+        轻衣橱 v1.7
       </p>
 
       {toast && <Toast message={toast} onClose={() => setToast('')} />}
