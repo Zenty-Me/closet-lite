@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllItems, getAllWearLogs, getItem, saveItem, softDeleteItem, uid } from '../db'
-import type { Category, ClothingItem, ColorName, Season } from '../types'
+import type { Category, ClothingItem, Season } from '../types'
 import {
   CATEGORIES,
   CATEGORY_LABEL,
-  COLORS,
+  COLOR_PRESETS,
   CORE_CATEGORIES,
   SEASONS,
 } from '../types'
@@ -59,7 +59,7 @@ export function Wardrobe() {
   const [showSearch, setShowSearch] = useState(false)
   const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [category, setCategory] = useState<Category | '全部'>('全部')
-  const [color, setColor] = useState<ColorName | '全部'>('全部')
+  const [color, setColor] = useState<string | '全部'>('全部')
   const [season, setSeason] = useState<Season | '全部'>('全部')
   const [sort, setSort] = useState<SortKey>('created')
   const [showMoreFilters, setShowMoreFilters] = useState(false)
@@ -165,7 +165,7 @@ export function Wardrobe() {
           id: uid(),
           name: '',
           category: '其他',
-          color: '其他',
+          color: '#bbb5a8',
           season: '四季',
           notes: '',
           brand: '',
@@ -367,8 +367,18 @@ export function Wardrobe() {
               <div className="form-label">颜色</div>
               <div className="filter-row">
                 <button type="button" className={`chip${color === '全部' ? ' active' : ''}`} onClick={() => setColor('全部')}>全部</button>
-                {COLORS.map((c) => (
-                  <button key={c} type="button" className={`chip${color === c ? ' active' : ''}`} onClick={() => setColor(c)}>{c}</button>
+                {COLOR_PRESETS.map((p) => (
+                  <button
+                    key={p.hex}
+                    type="button"
+                    className={`chip chip-swatch${color === p.hex ? ' active' : ''}`}
+                    onClick={() => setColor(p.hex)}
+                    title={p.label}
+                    aria-label={p.label}
+                  >
+                    <span className="chip-swatch-dot" style={{ background: p.hex }} />
+                    {p.label}
+                  </button>
                 ))}
               </div>
               <div className="form-label">季节</div>

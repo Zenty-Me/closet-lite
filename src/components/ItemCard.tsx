@@ -1,4 +1,5 @@
 import type { ClothingItem } from '../types'
+import { colorLabel } from '../types'
 import { useBlobUrl } from '../hooks/useBlobUrl'
 
 interface Props {
@@ -11,7 +12,7 @@ interface Props {
 
 export function ItemCard({ item, onClick, wearCount, selectMode, selected }: Props) {
   const url = useBlobUrl(item.imageBlob)
-  const subtitle = [item.brand, item.category, item.color].filter(Boolean).join('  ')
+  const subtitle = [item.brand, item.category, colorLabel(item.color)].filter(Boolean).join('  ')
   return (
     <button
       type="button"
