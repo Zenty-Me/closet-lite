@@ -1239,3 +1239,89 @@ img {
   color: var(--accent);
   border: 1px solid var(--line);
 }
+
+/* —— Batch select —— */
+.head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.item-card.selected {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.select-check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #fffbf5;
+  background: rgba(28, 25, 22, 0.25);
+  color: #fffbf5;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.select-check.on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.page-selecting {
+  padding-bottom: calc(88px + var(--safe-b));
+}
+
+.batch-action-bar {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(var(--nav-h) + var(--safe-b));
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  z-index: 95;
+}
+
+.batch-action-bar .btn {
+  flex: 1;
+  min-height: 44px;
+  padding: 0 8px;
+  font-size: 0.8125rem;
+}
+
+.batch-field {
+  margin-bottom: 12px;
+}
+
+.batch-field-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.batch-field-head input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.batch-field-body {
+  margin-top: 6px;
+  padding-left: 26px;
+}
