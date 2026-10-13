@@ -1740,3 +1740,95 @@ img {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
+
+/* —— 子分类 —— */
+.subcat-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.subcat-custom-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.subcat-custom-row .form-input {
+  flex: 1;
+  margin: 0;
+}
+.subcat-custom-row .btn {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0 14px;
+}
+.subcat-filter-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 0 10px;
+  scrollbar-width: none;
+}
+.subcat-filter-row::-webkit-scrollbar {
+  display: none;
+}
+.chip-sm {
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+.subcat-empty-hint {
+  margin: 0;
+  padding: 12px 4px;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+.group-thumb {
+  position: relative;
+}
+.group-thumb-badge {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  max-width: calc(100% - 8px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.625rem;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(61, 74, 46, 0.88);
+  color: #fffbf5;
+  line-height: 1.3;
+}
+.subcat-manage-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.subcat-manage-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.subcat-manage-row:last-child {
+  border-bottom: none;
+}
+.subcat-manage-meta {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: 400;
+  margin-top: 2px;
+}
+.subcat-manage-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.danger-text {
+  color: var(--danger) !important;
+}

@@ -15,6 +15,8 @@ import { compressImage } from '../utils/image'
 import { ImagePicker } from '../components/ImagePicker'
 import { ImageEditor } from '../components/ImageEditor'
 import { Toast } from '../components/Toast'
+import { SubcategoryPicker } from '../components/SubcategoryPicker'
+import { addSubcategoryLabel, loadSettings, saveSettings } from '../utils/settings'
 
 export function ItemForm() {
   const { id } = useParams()
@@ -25,6 +27,7 @@ export function ItemForm() {
 
   const [name, setName] = useState('')
   const [category, setCategory] = useState<Category>('上衣')
+  const [subcategory, setSubcategory] = useState('')
   const [color, setColor] = useState<ColorName>('黑')
   const [season, setSeason] = useState<Season>('四季')
   const [notes, setNotes] = useState('')
@@ -60,6 +63,7 @@ export function ItemForm() {
       }
       setName(item.name)
       setCategory(item.category)
+      setSubcategory(item.subcategory ?? '')
       setColor(item.color)
       setSeason(item.season)
       setNotes(item.notes)
@@ -110,6 +114,7 @@ export function ItemForm() {
       id: savedId,
       name: name.trim(),
       category,
+      subcategory: subcategory.trim(),
       color,
       season,
       notes: notes.trim(),
@@ -185,12 +190,30 @@ export function ItemForm() {
               key={c}
               type="button"
               className={`chip${category === c ? ' active' : ''}`}
-              onClick={() => setCategory(c)}
+              onClick={() => {
+                setCategory(c)
+                setSubcategory('')
+              }}
             >
               {CATEGORY_LABEL[c]}
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="form-group">
+        <div className="form-label">子分类</div>
+        <SubcategoryPicker
+          category={category}
+          value={subcategory}
+          onChange={(v) => {
+            setSubcategory(v)
+            if (v) {
+              const s = addSubcategoryLabel(loadSettings(), category, v)
+              saveSettings(s)
+            }
+          }}
+        />
       </div>
 
       <div className="form-group">

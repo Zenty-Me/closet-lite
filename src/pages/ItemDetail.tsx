@@ -25,6 +25,8 @@ import { useBlobUrl } from '../hooks/useBlobUrl'
 import { ImageEditor } from '../components/ImageEditor'
 import { ImagePicker } from '../components/ImagePicker'
 import { Toast } from '../components/Toast'
+import { SubcategoryPicker } from '../components/SubcategoryPicker'
+import { addSubcategoryLabel, loadSettings, saveSettings } from '../utils/settings'
 
 export function ItemDetail() {
   const { id } = useParams()
@@ -163,6 +165,12 @@ export function ItemDetail() {
           label="分类"
           value={CATEGORY_LABEL[item.category]}
           onClick={() => setFieldEdit('category')}
+        />
+        <AttrRow
+          label="子分类"
+          value={item.subcategory || '未分子类'}
+          muted={!item.subcategory}
+          onClick={() => setFieldEdit('subcategory')}
         />
         <AttrRow
           label="颜色"
@@ -349,6 +357,7 @@ function FieldSheet({
   const titleMap: Record<string, string> = {
     name: '名称',
     category: '分类',
+    subcategory: '子分类',
     color: '颜色',
     season: '季节',
     temp: '适合温度',
@@ -381,11 +390,29 @@ function FieldSheet({
         {field === 'category' && (
           <div className="chip-select">
             {CATEGORIES.map((c) => (
-              <button key={c} type="button" className={`chip${item.category === c ? ' active' : ''}`} onClick={() => onSave({ category: c })}>
+              <button
+                key={c}
+                type="button"
+                className={`chip${item.category === c ? ' active' : ''}`}
+                onClick={() => onSave({ category: c, subcategory: c === item.category ? item.subcategory : '' })}
+              >
                 {CATEGORY_LABEL[c]}
               </button>
             ))}
           </div>
+        )}
+        {field === 'subcategory' && (
+          <SubcategoryPicker
+            category={item.category}
+            value={item.subcategory}
+            onChange={(v) => {
+              if (v) {
+                const s = addSubcategoryLabel(loadSettings(), item.category, v)
+                saveSettings(s)
+              }
+              onSave({ subcategory: v })
+            }}
+          />
         )}
         {field === 'color' && (
           <div className="chip-select">

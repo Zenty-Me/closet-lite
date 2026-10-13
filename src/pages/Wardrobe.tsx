@@ -14,7 +14,7 @@ import { EmptyState } from '../components/EmptyState'
 import { TodaySuggest } from '../components/TodaySuggest'
 import { BatchEditSheet, type BatchPatch } from '../components/BatchEditSheet'
 import { buildWearCounts } from '../utils/wearStats'
-import { loadSettings, saveSettings } from '../utils/settings'
+import { loadSettings, saveSettings, mergeSubcategoryOptions } from '../utils/settings'
 import { filterAndSortItems, type SortKey } from '../utils/wardrobeQuery'
 import { compressImage } from '../utils/image'
 import { Toast } from '../components/Toast'
@@ -46,6 +46,7 @@ function GroupThumb({ item, onClick }: { item: ClothingItem; onClick: () => void
   return (
     <button type="button" className="group-thumb" onClick={onClick}>
       {url ? <img src={url} alt={item.name || item.category} /> : <div className="group-thumb-ph" />}
+      {item.subcategory ? <span className="group-thumb-badge">{item.subcategory}</span> : null}
     </button>
   )
 }
@@ -71,6 +72,8 @@ export function Wardrobe() {
   const [selectMode, setSelectMode] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(() => new Set())
   const [showBatchEdit, setShowBatchEdit] = useState(false)
+  /** per-category subcategory filter; '' = 全部 */
+  const [subFilter, setSubFilter] = useState<Partial<Record<Category, string>>>({})
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -177,6 +180,7 @@ export function Wardrobe() {
           tempMin: null,
           tempMax: null,
           status: '使用中',
+          subcategory: '',
           createdAt: now + i,
           updatedAt: now + i,
           deletedAt: null,
@@ -202,6 +206,7 @@ export function Wardrobe() {
       await saveItem({
         ...item,
         category: patch.category ?? item.category,
+        subcategory: patch.subcategory !== undefined ? patch.subcategory : item.subcategory,
         season: patch.season ?? item.season,
         color: patch.color ?? item.color,
         brand: patch.brand !== undefined ? patch.brand : item.brand,
@@ -290,6 +295,15 @@ export function Wardrobe() {
             }}
           >
             批量导入
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowMoreMenu(false)
+              navigate('/categories')
+            }}
+          >
+            管理分类
           </button>
           <button type="button" onClick={() => { setShowMoreMenu(false); navigate('/me') }}>
             我的 / 回收站
@@ -405,21 +419,69 @@ export function Wardrobe() {
                   </button>
                 </div>
               </div>
-              <div className="category-rail">
-                {list.length === 0 ? (
-                  <button
-                    type="button"
-                    className="group-thumb group-thumb-empty"
-                    onClick={() => navigate(`/items/new?category=${encodeURIComponent(cat)}`)}
-                  >
-                    +
-                  </button>
-                ) : (
-                  list.map((it) => (
-                    <GroupThumb key={it.id} item={it} onClick={() => navigate(`/items/${it.id}`)} />
-                  ))
-                )}
-              </div>
+              {(() => {
+                const used = list.map((i) => i.subcategory).filter(Boolean)
+                const chips = mergeSubcategoryOptions(settings, cat, used)
+                const active = subFilter[cat] ?? ''
+                const shown =
+                  !active
+                    ? list
+                    : active === '__none__'
+                      ? list.filter((i) => !i.subcategory)
+                      : list.filter((i) => i.subcategory === active)
+                const hasAnySub = list.some((i) => i.subcategory) || chips.length > 0
+                return (
+                  <>
+                    {hasAnySub && list.length > 0 && (
+                      <div className="subcat-filter-row">
+                        <button
+                          type="button"
+                          className={`chip chip-sm${!active ? ' active' : ''}`}
+                          onClick={() => setSubFilter((s) => ({ ...s, [cat]: '' }))}
+                        >
+                          全部
+                        </button>
+                        {list.some((i) => !i.subcategory) && (
+                          <button
+                            type="button"
+                            className={`chip chip-sm${active === '__none__' ? ' active' : ''}`}
+                            onClick={() => setSubFilter((s) => ({ ...s, [cat]: '__none__' }))}
+                          >
+                            未分
+                          </button>
+                        )}
+                        {chips.map((s) => (
+                          <button
+                            key={s}
+                            type="button"
+                            className={`chip chip-sm${active === s ? ' active' : ''}`}
+                            onClick={() => setSubFilter((prev) => ({ ...prev, [cat]: s }))}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    <div className="category-rail">
+                      {list.length === 0 ? (
+                        <button
+                          type="button"
+                          className="group-thumb group-thumb-empty"
+                          onClick={() => navigate(`/items/new?category=${encodeURIComponent(cat)}`)}
+                        >
+                          +
+                        </button>
+                      ) : shown.length === 0 ? (
+                        <p className="subcat-empty-hint">该子分类下暂无单品</p>
+                      ) : (
+                        shown.map((it) => (
+                          <GroupThumb key={it.id} item={it} onClick={() => navigate(`/items/${it.id}`)} />
+                        ))
+                      )}
+                    </div>
+                  </>
+                )
+              })()}
             </section>
           ))}
         </div>

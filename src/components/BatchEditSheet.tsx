@@ -8,9 +8,12 @@ import {
   type ColorName,
   type Season,
 } from '../types'
+import { SubcategoryPicker } from './SubcategoryPicker'
+import { addSubcategoryLabel, loadSettings, saveSettings } from '../utils/settings'
 
 export interface BatchPatch {
   category?: Category
+  subcategory?: string
   season?: Season
   color?: ColorName
   brand?: string
@@ -28,6 +31,7 @@ interface Props {
 
 export function BatchEditSheet({ count, onApply, onClose }: Props) {
   const [enableCategory, setEnableCategory] = useState(false)
+  const [enableSubcategory, setEnableSubcategory] = useState(false)
   const [enableSeason, setEnableSeason] = useState(false)
   const [enableColor, setEnableColor] = useState(false)
   const [enableBrand, setEnableBrand] = useState(false)
@@ -36,6 +40,7 @@ export function BatchEditSheet({ count, onApply, onClose }: Props) {
   const [enableTags, setEnableTags] = useState(false)
 
   const [category, setCategory] = useState<Category>('上衣')
+  const [subcategory, setSubcategory] = useState('')
   const [season, setSeason] = useState<Season>('四季')
   const [color, setColor] = useState<ColorName>('黑')
   const [brand, setBrand] = useState('')
@@ -46,6 +51,7 @@ export function BatchEditSheet({ count, onApply, onClose }: Props) {
   const apply = () => {
     const patch: BatchPatch = {}
     if (enableCategory) patch.category = category
+    if (enableSubcategory) patch.subcategory = subcategory.trim()
     if (enableSeason) patch.season = season
     if (enableColor) patch.color = color
     if (enableBrand) patch.brand = brand.trim()
@@ -64,6 +70,7 @@ export function BatchEditSheet({ count, onApply, onClose }: Props) {
 
   const hasAny =
     enableCategory ||
+    enableSubcategory ||
     enableSeason ||
     enableColor ||
     enableBrand ||
@@ -85,12 +92,29 @@ export function BatchEditSheet({ count, onApply, onClose }: Props) {
                 key={c}
                 type="button"
                 className={`chip${category === c ? ' active' : ''}`}
-                onClick={() => setCategory(c)}
+                onClick={() => { setCategory(c); setSubcategory('') }}
               >
                 {CATEGORY_LABEL[c]}
               </button>
             ))}
           </div>
+        </FieldToggle>
+
+        <FieldToggle label="子分类" on={enableSubcategory} setOn={setEnableSubcategory}>
+          <p className="insight-hint" style={{ marginBottom: 8 }}>
+            按上方「分类」字段所属主类选子分类；若同时改分类，请先勾选分类
+          </p>
+          <SubcategoryPicker
+            category={category}
+            value={subcategory}
+            onChange={(v) => {
+              setSubcategory(v)
+              if (v) {
+                const s = addSubcategoryLabel(loadSettings(), category, v)
+                saveSettings(s)
+              }
+            }}
+          />
         </FieldToggle>
 
         <FieldToggle label="季节" on={enableSeason} setOn={setEnableSeason}>
