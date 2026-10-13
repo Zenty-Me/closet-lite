@@ -9,6 +9,7 @@ interface Props {
 
 export function ItemCard({ item, onClick, wearCount }: Props) {
   const url = useBlobUrl(item.imageBlob)
+  const subtitle = [item.brand, item.category, item.color].filter(Boolean).join('  ')
   return (
     <button type="button" className="item-card" onClick={onClick}>
       <div className="item-card-img-wrap">
@@ -23,9 +24,7 @@ export function ItemCard({ item, onClick, wearCount }: Props) {
       </div>
       <div className="item-card-body">
         <div className="item-card-name">{item.name || item.category}</div>
-        <div className="item-card-meta">
-          {item.category}  {item.color}  {item.season}
-        </div>
+        <div className="item-card-meta">{subtitle}</div>
       </div>
     </button>
   )

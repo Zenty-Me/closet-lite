@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { deleteOutfit, getItemsByIds, getOutfit } from '../db'
+import { softDeleteOutfit, getItemsByIds, getOutfit } from '../db'
 import type { ClothingItem, Outfit } from '../types'
 import { useBlobUrl } from '../hooks/useBlobUrl'
 
@@ -44,8 +44,8 @@ export function OutfitDetail() {
 
   const onDelete = async () => {
     if (!outfit) return
-    if (!confirm('确定删除这套搭配？')) return
-    await deleteOutfit(outfit.id)
+    if (!confirm('移入回收站？可在「我的 → 回收站」恢复。')) return
+    await softDeleteOutfit(outfit.id)
     navigate('/outfits', { replace: true })
   }
 

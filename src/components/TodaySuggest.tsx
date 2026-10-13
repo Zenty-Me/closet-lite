@@ -46,6 +46,7 @@ export function TodaySuggest({ items }: Props) {
       itemIds: picks.map((p) => p.id),
       createdAt: now,
       updatedAt: now,
+      deletedAt: null,
     })
     setSaving(false)
     setToast('已保存为搭配')
