@@ -3,10 +3,9 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   CATEGORIES,
   CATEGORY_LABEL,
-  COLORS,
   SEASONS,
+  normalizeColorHex,
   type Category,
-  type ColorName,
   type Season,
 } from '../types'
 import { getAllWearLogs, getItem, saveItem, softDeleteItem, uid } from '../db'
@@ -16,6 +15,7 @@ import { ImagePicker } from '../components/ImagePicker'
 import { ImageEditor } from '../components/ImageEditor'
 import { Toast } from '../components/Toast'
 import { SubcategoryPicker } from '../components/SubcategoryPicker'
+import { ColorPicker } from '../components/ColorPicker'
 import { addSubcategoryLabel, loadSettings, saveSettings } from '../utils/settings'
 
 export function ItemForm() {
@@ -28,7 +28,7 @@ export function ItemForm() {
   const [name, setName] = useState('')
   const [category, setCategory] = useState<Category>('上衣')
   const [subcategory, setSubcategory] = useState('')
-  const [color, setColor] = useState<ColorName>('黑')
+  const [color, setColor] = useState('#1c1916')
   const [season, setSeason] = useState<Season>('四季')
   const [notes, setNotes] = useState('')
   const [brand, setBrand] = useState('')
@@ -64,7 +64,7 @@ export function ItemForm() {
       setName(item.name)
       setCategory(item.category)
       setSubcategory(item.subcategory ?? '')
-      setColor(item.color)
+      setColor(normalizeColorHex(item.color))
       setSeason(item.season)
       setNotes(item.notes)
       setBrand(item.brand)
@@ -115,7 +115,7 @@ export function ItemForm() {
       name: name.trim(),
       category,
       subcategory: subcategory.trim(),
-      color,
+      color: normalizeColorHex(color),
       season,
       notes: notes.trim(),
       brand: brand.trim(),
@@ -218,18 +218,7 @@ export function ItemForm() {
 
       <div className="form-group">
         <div className="form-label">颜色</div>
-        <div className="chip-select">
-          {COLORS.map((c) => (
-            <button
-              key={c}
-              type="button"
-              className={`chip${color === c ? ' active' : ''}`}
-              onClick={() => setColor(c)}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
+        <ColorPicker value={color} onChange={setColor} sampleBlob={imageBlob} />
       </div>
 
       <div className="form-group">

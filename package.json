@@ -7,9 +7,18 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "fetch:bg-removal": "node scripts/fetch-bg-removal.mjs",
+    "build:web": "npm run fetch:bg-removal && tsc -b && vite build",
+    "build:native": "npm run fetch:bg-removal && VITE_BASE=/ npx tsc -b && VITE_BASE=/ npx vite build",
+    "cap:sync": "npx cap sync android",
+    "android:sync": "npm run build:native && npx cap sync android",
+    "android:open": "npx cap open android"
   },
   "dependencies": {
+    "@capacitor/android": "^6.2.2",
+    "@capacitor/core": "^6.2.2",
+    "@imgly/background-removal": "^1.7.0",
     "idb": "^8.0.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
@@ -18,6 +27,7 @@
     "workbox-window": "^7.4.1"
   },
   "devDependencies": {
+    "@capacitor/cli": "^6.2.2",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",

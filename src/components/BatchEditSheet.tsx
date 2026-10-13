@@ -2,20 +2,20 @@ import { useState, type ReactNode } from 'react'
 import {
   CATEGORIES,
   CATEGORY_LABEL,
-  COLORS,
   SEASONS,
+  normalizeColorHex,
   type Category,
-  type ColorName,
   type Season,
 } from '../types'
 import { SubcategoryPicker } from './SubcategoryPicker'
+import { ColorPicker } from './ColorPicker'
 import { addSubcategoryLabel, loadSettings, saveSettings } from '../utils/settings'
 
 export interface BatchPatch {
   category?: Category
   subcategory?: string
   season?: Season
-  color?: ColorName
+  color?: string
   brand?: string
   location?: string
   size?: string
@@ -42,7 +42,7 @@ export function BatchEditSheet({ count, onApply, onClose }: Props) {
   const [category, setCategory] = useState<Category>('上衣')
   const [subcategory, setSubcategory] = useState('')
   const [season, setSeason] = useState<Season>('四季')
-  const [color, setColor] = useState<ColorName>('黑')
+  const [color, setColor] = useState('#1c1916')
   const [brand, setBrand] = useState('')
   const [location, setLocation] = useState('')
   const [size, setSize] = useState('')
@@ -53,7 +53,7 @@ export function BatchEditSheet({ count, onApply, onClose }: Props) {
     if (enableCategory) patch.category = category
     if (enableSubcategory) patch.subcategory = subcategory.trim()
     if (enableSeason) patch.season = season
-    if (enableColor) patch.color = color
+    if (enableColor) patch.color = normalizeColorHex(color)
     if (enableBrand) patch.brand = brand.trim()
     if (enableLocation) patch.location = location.trim()
     if (enableSize) patch.size = size.trim()
@@ -133,18 +133,7 @@ export function BatchEditSheet({ count, onApply, onClose }: Props) {
         </FieldToggle>
 
         <FieldToggle label="颜色" on={enableColor} setOn={setEnableColor}>
-          <div className="chip-select">
-            {COLORS.map((c) => (
-              <button
-                key={c}
-                type="button"
-                className={`chip${color === c ? ' active' : ''}`}
-                onClick={() => setColor(c)}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
+          <ColorPicker value={color} onChange={setColor} />
         </FieldToggle>
 
         <FieldToggle label="品牌" on={enableBrand} setOn={setEnableBrand}>

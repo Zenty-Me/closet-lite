@@ -10,12 +10,11 @@ import {
 import {
   CATEGORIES,
   CATEGORY_LABEL,
-  COLOR_HEX,
-  COLORS,
+  colorLabel,
   ITEM_STATUSES,
+  normalizeColorHex,
   SEASONS,
   type ClothingItem,
-  type ColorName,
   type ItemStatus,
   type Season,
 } from '../types'
@@ -26,6 +25,7 @@ import { ImageEditor } from '../components/ImageEditor'
 import { ImagePicker } from '../components/ImagePicker'
 import { Toast } from '../components/Toast'
 import { SubcategoryPicker } from '../components/SubcategoryPicker'
+import { ColorPicker } from '../components/ColorPicker'
 import { addSubcategoryLabel, loadSettings, saveSettings } from '../utils/settings'
 
 export function ItemDetail() {
@@ -174,8 +174,8 @@ export function ItemDetail() {
         />
         <AttrRow
           label="颜色"
-          value={item.color}
-          swatch={COLOR_HEX[item.color]}
+          value={colorLabel(item.color)}
+          swatch={normalizeColorHex(item.color)}
           onClick={() => setFieldEdit('color')}
         />
         <AttrRow label="季节" value={item.season || '未设置'} onClick={() => setFieldEdit('season')} />
@@ -415,14 +415,11 @@ function FieldSheet({
           />
         )}
         {field === 'color' && (
-          <div className="chip-select">
-            {COLORS.map((c) => (
-              <button key={c} type="button" className={`chip${item.color === c ? ' active' : ''}`} onClick={() => onSave({ color: c as ColorName })}>
-                <span className="color-swatch" style={{ background: COLOR_HEX[c], marginRight: 6 }} />
-                {c}
-              </button>
-            ))}
-          </div>
+          <ColorPicker
+            value={item.color}
+            onChange={(hex) => onSave({ color: hex })}
+            sampleBlob={item.imageBlob}
+          />
         )}
         {field === 'season' && (
           <div className="chip-select">

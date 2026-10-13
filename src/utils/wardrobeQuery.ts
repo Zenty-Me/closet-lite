@@ -1,11 +1,12 @@
-import type { Category, ClothingItem, ColorName, Season, SeasonFilter } from '../types'
+import type { Category, ClothingItem, Season, SeasonFilter } from '../types'
+import { normalizeColorHex } from '../types'
 
 export type SortKey = 'created' | 'updated' | 'wear' | 'name'
 
 export interface WardrobeQuery {
   search: string
   category: Category | '全部'
-  color: ColorName | '全部'
+  color: string | '全部'
   season: Season | '全部'
   sort: SortKey
   seasonMode: boolean
@@ -24,7 +25,7 @@ export function filterAndSortItems(
       if (item.season !== '四季' && item.season !== q.currentSeasonFilter) return false
     }
     if (q.category !== '全部' && item.category !== q.category) return false
-    if (q.color !== '全部' && item.color !== q.color) return false
+    if (q.color !== '全部' && normalizeColorHex(item.color) !== normalizeColorHex(q.color)) return false
     if (q.season !== '全部' && item.season !== q.season) return false
     if (needle) {
       const hay = [

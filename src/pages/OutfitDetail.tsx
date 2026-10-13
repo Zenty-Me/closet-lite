@@ -1,3 +1,4 @@
+import { colorLabel } from '../types'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { softDeleteOutfit, getItemsByIds, getOutfit } from '../db'
@@ -15,7 +16,7 @@ function LargeThumb({ item, onClick }: { item: ClothingItem; onClick: () => void
       )}
       <span className="detail-thumb-label">{item.name || item.category}</span>
       <span className="detail-thumb-meta">
-        {item.category}  {item.color}
+        {item.category}  {colorLabel(item.color)}
       </span>
     </button>
   )

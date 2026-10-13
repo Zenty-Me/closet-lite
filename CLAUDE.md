@@ -24,7 +24,7 @@
 - `vite-plugin-pwa`（manifest + service worker）  
 - `idb` → IndexedDB  
 - React Router **`HashRouter`**（适配 GitHub Project Pages）  
-- Vite `base: '/qing-yichu/'`  
+- Vite `base`：`VITE_BASE` 或默认 `/qing-yichu/`；原生 `/`  
 - Deploy: `.github/workflows/deploy.yml` → GitHub Pages (Actions)  
 
 ## Architecture
@@ -33,8 +33,8 @@
 src/
   pages/        # 衣橱、单品详情/表单、搭配、灵感、日历、我的、回收站
   components/   # BottomNav、ItemCard、ImageEditor、BatchEditSheet…
-  db/index.ts   # IndexedDB 封装（当前 DB_VERSION = 5）
-  types/        # 领域类型 + normalize* + BackupData v1–v5
+  db/index.ts   # IndexedDB 封装（当前 DB_VERSION = 6）
+  types/        # 领域类型 + normalize* + BackupData v1–v5（颜色已存 hex）
   utils/        # image / cutout / settings / wearStats / suggest / wardrobeQuery…
   hooks/        # useBlobUrl
 ```
@@ -48,6 +48,7 @@ src/
 | 3 | soft fields: `originalBlob`（单品）、`coverBlob`（搭配）；`normalize*` |
 | 4 | `extraImages[]`、`tempMin`/`tempMax`、`status`；分类增「连衣裙」；UI 别名上装/下装 |
 | 5 | `subcategory` 字符串；自定义子分类 taxonomy 在 settings / 备份 v5 |
+| 6 | `color` 存 hex；旧中文色名经 `normalizeColorHex` 迁移 |
 
 Stores: `items`, `outfits`, `wearLogs`, `inspirations`. Soft-delete via `deletedAt`.
 

@@ -34,40 +34,53 @@ export type Season = (typeof SEASONS)[number]
 export const SEASON_FILTERS = ['春', '夏', '秋', '冬'] as const
 export type SeasonFilter = (typeof SEASON_FILTERS)[number]
 
-export const COLORS = [
-  '黑',
-  '白',
-  '灰',
-  '米',
-  '棕',
-  '红',
-  '橙',
-  '黄',
-  '绿',
-  '蓝',
-  '紫',
-  '粉',
-  '多色',
-  '其他',
+/** Preset color labels (UI only). Stored value on items is always hex. */
+export const COLOR_PRESETS = [
+  { label: '黑', hex: '#1c1916' },
+  { label: '白', hex: '#f5f2eb' },
+  { label: '灰', hex: '#8a8580' },
+  { label: '米', hex: '#d4c4a8' },
+  { label: '棕', hex: '#6b4a2e' },
+  { label: '红', hex: '#a63d3d' },
+  { label: '橙', hex: '#c4783a' },
+  { label: '黄', hex: '#c9a227' },
+  { label: '绿', hex: '#3d4a2e' },
+  { label: '蓝', hex: '#3a4f6f' },
+  { label: '紫', hex: '#5c4a6e' },
+  { label: '粉', hex: '#c48a9a' },
+  { label: '多色', hex: '#6e675e' },
+  { label: '其他', hex: '#bbb5a8' },
 ] as const
 
-export type ColorName = (typeof COLORS)[number]
+/** @deprecated use COLOR_PRESETS — kept for migration maps */
+export const COLORS = COLOR_PRESETS.map((p) => p.label)
+export type ColorName = (typeof COLOR_PRESETS)[number]['label']
 
-export const COLOR_HEX: Record<ColorName, string> = {
-  黑: '#1c1916',
-  白: '#f5f2eb',
-  灰: '#8a8580',
-  米: '#d4c4a8',
-  棕: '#6b4a2e',
-  红: '#a63d3d',
-  橙: '#c4783a',
-  黄: '#c9a227',
-  绿: '#3d4a2e',
-  蓝: '#3a4f6f',
-  紫: '#5c4a6e',
-  粉: '#c48a9a',
-  多色: '#6e675e',
-  其他: '#bbb5a8',
+export const COLOR_HEX: Record<ColorName, string> = Object.fromEntries(
+  COLOR_PRESETS.map((p) => [p.label, p.hex]),
+) as Record<ColorName, string>
+
+const LEGACY_COLOR_TO_HEX: Record<string, string> = { ...COLOR_HEX }
+
+/** Normalize any legacy Chinese name or hex to `#rrggbb` */
+export function normalizeColorHex(raw: unknown): string {
+  if (typeof raw !== 'string' || !raw.trim()) return COLOR_HEX['其他']
+  const s = raw.trim()
+  if (LEGACY_COLOR_TO_HEX[s]) return LEGACY_COLOR_TO_HEX[s]
+  const m = s.match(/^#?([0-9a-fA-F]{6})$/)
+  if (m) return `#${m[1].toLowerCase()}`
+  const m3 = s.match(/^#?([0-9a-fA-F]{3})$/)
+  if (m3) {
+    const [a, b, c] = m3[1]
+    return `#${a}${a}${b}${b}${c}${c}`.toLowerCase()
+  }
+  return COLOR_HEX['其他']
+}
+
+export function colorLabel(hex: string): string {
+  const h = normalizeColorHex(hex)
+  const hit = COLOR_PRESETS.find((p) => p.hex === h)
+  return hit ? hit.label : h.toUpperCase()
 }
 
 export const ITEM_STATUSES = ['使用中', '闲置', '收纳中', '已淘汰'] as const
@@ -79,7 +92,8 @@ export interface ClothingItem {
   category: Category
   /** User-defined under main category; empty = 未分子类 */
   subcategory: string
-  color: ColorName
+  /** Hex `#rrggbb` (legacy Chinese names migrated in normalizeItem) */
+  color: string
   season: Season
   notes: string
   brand: string
@@ -149,7 +163,8 @@ export interface BackupDataV1 {
     id: string
     name: string
     category: Category
-    color: ColorName
+    /** Hex `#rrggbb` (legacy Chinese names migrated in normalizeItem) */
+  color: string
     season: Season
     notes: string
     imageBase64: string
@@ -225,7 +240,7 @@ export function normalizeItem(
     name: raw.name ?? '',
     category,
     subcategory: typeof raw.subcategory === 'string' ? raw.subcategory.trim() : '',
-    color: raw.color,
+    color: normalizeColorHex(raw.color),
     season: raw.season,
     notes: raw.notes ?? '',
     brand: raw.brand ?? '',

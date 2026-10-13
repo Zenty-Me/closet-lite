@@ -25,3 +25,24 @@ dist-ssr
 
 # TypeScript
 *.tsbuildinfo
+
+# Self-hosted cutout model chunks (~80MB) — fetch via npm run fetch:bg-removal
+public/bg-removal/*
+!public/bg-removal/README.md
+!public/bg-removal/resources.json
+!public/bg-removal/.gitkeep
+.tmp-bg-removal/
+
+# Android local / build (keep project sources)
+android/.gradle/
+android/app/build/
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+
+android/build/
+android/captures/
+android/local.properties/
+android/.idea/
+*.apk
+*.aab

@@ -1,0 +1,47 @@
+name: Android debug APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'src/**'
+      - 'capacitor.config.ts'
+      - 'package.json'
+
+# Builds a debug APK without signing secrets. Artifact downloadable from Actions.
+# Requires android/ project committed (run npm run android:sync locally once).
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+      - run: npm ci
+      - run: npm run fetch:bg-removal
+      - name: Build web (native base)
+        run: VITE_BASE=/ npx tsc -b && VITE_BASE=/ npx vite build
+      - name: Ensure android project
+        run: |
+          if [ ! -d android ]; then
+            npx cap add android
+          fi
+          npx cap sync android
+      - name: Assemble debug APK
+        working-directory: android
+        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qing-yichu-debug
+          path: android/app/build/outputs/apk/debug/*.apk

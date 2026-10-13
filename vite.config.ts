@@ -2,8 +2,11 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+/** Pages: /qing-yichu/ · Capacitor/native: /  (set VITE_BASE=/ npm run build:native) */
+const base = process.env.VITE_BASE || '/qing-yichu/'
+
 export default defineConfig({
-  base: '/qing-yichu/',
+  base,
   plugins: [
     react(),
     VitePWA({
@@ -18,8 +21,8 @@ export default defineConfig({
         display: 'standalone',
         orientation: 'portrait',
         lang: 'zh-CN',
-        start_url: '/qing-yichu/',
-        scope: '/qing-yichu/',
+        start_url: base,
+        scope: base,
         icons: [
           {
             src: 'icons/icon-192.png',
@@ -41,7 +44,9 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        navigateFallback: '/qing-yichu/index.html',
+        // Large ONNX/WASM chunks for cutout — cache selectively when present
+        globIgnores: ['**/bg-removal/**'],
+        navigateFallback: `${base}index.html`.replace(/\/{2,}/g, '/'),
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       },
     }),
