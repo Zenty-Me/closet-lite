@@ -29,7 +29,12 @@ export function buildWearCounts(logs: WearLog[]): Map<string, { count: number; l
 export function rankItemsByWear(
   items: ClothingItem[],
   logs: WearLog[],
-): { top: ItemWearStat[]; forgotten: ItemWearStat[]; all: ItemWearStat[] } {
+): {
+  top: ItemWearStat[]
+  forgotten: ItemWearStat[]
+  idleHighPrice: ItemWearStat[]
+  all: ItemWearStat[]
+} {
   const counts = buildWearCounts(logs)
   const all: ItemWearStat[] = items.map((item) => {
     const c = counts.get(item.id)
@@ -49,9 +54,21 @@ export function rankItemsByWear(
     .filter((s) => s.count > 0 && s.count <= 1)
     .sort((a, b) => (a.lastWorn ?? '').localeCompare(b.lastWorn ?? ''))
 
+  const idleHighPrice = all
+    .filter(
+      (s) =>
+        s.item.price != null &&
+        s.item.price >= 100 &&
+        s.count <= 1 &&
+        s.item.status !== '已淘汰',
+    )
+    .sort((a, b) => (b.item.price ?? 0) - (a.item.price ?? 0))
+    .slice(0, 6)
+
   return {
     top: worn.slice(0, 5),
     forgotten: [...forgotten, ...rare.filter((r) => !forgotten.some((f) => f.item.id === r.item.id))].slice(0, 8),
+    idleHighPrice,
     all,
   }
 }

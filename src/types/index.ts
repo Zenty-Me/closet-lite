@@ -139,6 +139,8 @@ export interface WearLog {
   itemIds: string[]
   note: string
   weather: string
+  /** 今日花费（可选，如咖啡/打车等，非单品价） */
+  spend: number | null
   photoBlob?: Blob
   createdAt: number
 }
@@ -330,6 +332,7 @@ export function normalizeWearLog(
     itemIds: raw.itemIds ?? [],
     note: raw.note ?? '',
     weather: raw.weather ?? '',
+    spend: raw.spend != null && !Number.isNaN(Number(raw.spend)) ? Number(raw.spend) : null,
     photoBlob: raw.photoBlob,
     createdAt: raw.createdAt,
   }

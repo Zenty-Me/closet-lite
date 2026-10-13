@@ -2189,3 +2189,39 @@ img {
   padding: 2px 6px;
   border-radius: 999px;
 }
+
+/* —— ROI / 换季 —— */
+.roi-card {
+  margin: 8px 0 12px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.roi-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  color: var(--muted);
+  padding: 4px 0;
+}
+.roi-row strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.season-banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  background: #fff8e6;
+  border: 1px solid #f0e0b2;
+  border-radius: var(--radius);
+  color: #8a6d1d;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}

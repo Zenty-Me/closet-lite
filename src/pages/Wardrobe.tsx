@@ -19,6 +19,7 @@ import { filterAndSortItems, type SortKey } from '../utils/wardrobeQuery'
 import { compressImage } from '../utils/image'
 import { Toast } from '../components/Toast'
 import { formatYuan, summarizeWardrobeValue } from '../utils/valueStats'
+import { seasonReminderMessage } from '../utils/seasonReminder'
 import { useBlobUrl } from '../hooks/useBlobUrl'
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
@@ -132,6 +133,8 @@ export function Wardrobe() {
     () => summarizeWardrobeValue(items, { includeRetired: settings.includeRetiredInValue }),
     [items, settings.includeRetiredInValue],
   )
+
+  const seasonBanner = useMemo(() => seasonReminderMessage(settings), [settings])
 
     const sections = useMemo(() => {
     const byCat = new Map<Category, ClothingItem[]>()
@@ -287,6 +290,15 @@ export function Wardrobe() {
           </button>
         </div>
       </header>
+
+      {seasonBanner && (
+        <div className="season-banner">
+          <span>{seasonBanner}</span>
+          <button type="button" className="btn-text" onClick={() => navigate('/me')}>
+            设置
+          </button>
+        </div>
+      )}
 
       {items.length > 0 && (
         <button type="button" className="value-chip" onClick={() => navigate('/me')}>

@@ -41,7 +41,7 @@ interface WardrobeDB extends DBSchema {
 }
 
 const DB_NAME = 'qing-yichu'
-const DB_VERSION = 8
+const DB_VERSION = 9
 
 let dbPromise: Promise<IDBPDatabase<WardrobeDB>> | null = null
 

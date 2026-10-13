@@ -66,6 +66,7 @@ export function Calendar() {
   const [note, setNote] = useState('')
   const [weather, setWeather] = useState('')
   const [photoBlob, setPhotoBlob] = useState<Blob | undefined>()
+  const [spend, setSpend] = useState('')
   const [toast, setToast] = useState('')
 
   const loadLogs = useCallback(async () => {
@@ -191,6 +192,7 @@ export function Calendar() {
     setNote(dayLog?.note ?? '')
     setWeather(dayLog?.weather ?? '')
     setPhotoBlob(dayLog?.photoBlob)
+    setSpend(dayLog?.spend != null ? String(dayLog.spend) : '')
     setShowPicker(true)
   }
 
@@ -221,6 +223,7 @@ export function Calendar() {
       setToast('请至少选择一件单品')
       return
     }
+    const spendNum = spend.trim() === '' ? null : Number(spend)
     await saveWearLog({
       id: dayLog?.id ?? uid(),
       date: selected,
@@ -228,6 +231,7 @@ export function Calendar() {
       itemIds,
       note: note.trim(),
       weather: weather.trim(),
+      spend: spendNum != null && !Number.isNaN(spendNum) ? spendNum : null,
       photoBlob,
       createdAt: dayLog?.createdAt ?? Date.now(),
     })
@@ -313,6 +317,11 @@ export function Calendar() {
         </div>
         {dayLog ? (
           <>
+            {dayLog.spend != null && (
+              <div style={{ fontSize: '0.875rem', marginBottom: 6, color: 'var(--accent)', fontWeight: 600 }}>
+                今日花费：¥{dayLog.spend}
+              </div>
+            )}
             {dayLog.weather && (
               <div style={{ fontSize: '0.875rem', marginBottom: 6, color: 'var(--muted)' }}>
                 天气：{dayLog.weather}
@@ -424,6 +433,20 @@ export function Calendar() {
                 onChange={(e) => setWeather(e.target.value)}
                 placeholder="晴 22℃ / 下雨…"
               />
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="wspend">今日花费（可选）</label>
+              <div className="price-input-wrap">
+                <span className="price-prefix">¥</span>
+                <input
+                  id="wspend"
+                  className="form-input price-input"
+                  inputMode="decimal"
+                  value={spend}
+                  onChange={(e) => setSpend(e.target.value)}
+                  placeholder="咖啡、交通等"
+                />
+              </div>
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="wnote">备注</label>

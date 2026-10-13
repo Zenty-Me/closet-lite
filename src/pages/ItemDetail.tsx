@@ -155,11 +155,25 @@ export function ItemDetail() {
         </button>
       </div>
 
-      {wearCount > 0 && (
-        <p className="page-sub" style={{ padding: '0 4px' }}>
-          已记录穿着 {wearCount} 次
-        </p>
-      )}
+      <div className="roi-card">
+        <div className="roi-row">
+          <span>穿着次数</span>
+          <strong>{wearCount} 次</strong>
+        </div>
+        {item.price != null && (
+          <div className="roi-row">
+            <span>单次成本</span>
+            <strong>
+              {wearCount > 0
+                ? `≈ ${formatYuan(item.price / wearCount)}`
+                : '尚未穿着（价 / 次数）'}
+            </strong>
+          </div>
+        )}
+        {item.price != null && wearCount === 0 && (
+          <p className="insight-hint" style={{ marginTop: 6 }}>穿一次后即可看到单次成本</p>
+        )}
+      </div>
 
       <div className="attr-list">
         <AttrRow label="名称" value={item.name || '输入名称'} muted={!item.name} onClick={() => setFieldEdit('name')} />
@@ -238,6 +252,21 @@ export function ItemDetail() {
             打开拼多多
           </button>
         </div>
+        <button
+          type="button"
+          className="btn btn-ghost btn-block"
+          onClick={async () => {
+            const text = item.name || item.brand || CATEGORY_LABEL[item.category]
+            try {
+              await navigator.clipboard.writeText(text)
+              setToast('已复制商品名')
+            } catch {
+              setToast('复制失败，请长按名称手动复制')
+            }
+          }}
+        >
+          复制商品名
+        </button>
       </div>
 
       <div className="detail-action-bar">
