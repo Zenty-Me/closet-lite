@@ -34,6 +34,7 @@ import { loadSettings, saveSettings, type AppSettings } from '../utils/settings'
 import { WearInsight } from '../components/WearInsight'
 import { Toast } from '../components/Toast'
 import { openTaobao, openPinduoduo } from '../utils/shop'
+import { downloadTextFile, itemsToCsv } from '../utils/csvExport'
 import {
   formatYuan,
   summarizeWardrobeValue,
@@ -52,6 +53,7 @@ export function Profile() {
   const [shopKw, setShopKw] = useState(() => loadSettings().shopSearchKeyword)
   const [top, setTop] = useState<ItemWearStat[]>([])
   const [forgotten, setForgotten] = useState<ItemWearStat[]>([])
+  const [idleHighPrice, setIdleHighPrice] = useState<ItemWearStat[]>([])
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings())
   const [toast, setToast] = useState('')
   const [busy, setBusy] = useState(false)
@@ -73,6 +75,7 @@ export function Profile() {
     const ranked = rankItemsByWear(items, logs)
     setTop(ranked.top)
     setForgotten(ranked.forgotten)
+    setIdleHighPrice(ranked.idleHighPrice)
     setValueSummary(
       summarizeWardrobeValue(items, { includeRetired: loadSettings().includeRetiredInValue }),
     )
@@ -287,6 +290,21 @@ export function Profile() {
     setBusy(false)
   }
 
+  const exportCsv = async () => {
+    setBusy(true)
+    try {
+      const items = await getAllItems(true)
+      downloadTextFile(
+        `qing-yichu-items-${new Date().toISOString().slice(0, 10)}.csv`,
+        itemsToCsv(items),
+      )
+      setToast('CSV 已导出')
+    } catch {
+      setToast('导出失败')
+    }
+    setBusy(false)
+  }
+
   const clearData = async () => {
     if (!confirm('确定清空全部数据？请先导出备份。')) return
     if (!confirm('再次确认：真的要清空吗？')) return
@@ -328,6 +346,14 @@ export function Profile() {
             type="checkbox"
             checked={settings.seasonMode}
             onChange={(e) => updateSettings({ seasonMode: e.target.checked })}
+          />
+        </label>
+        <label className="toggle-row">
+          <span>换季提醒</span>
+          <input
+            type="checkbox"
+            checked={settings.seasonReminder}
+            onChange={(e) => updateSettings({ seasonReminder: e.target.checked })}
           />
         </label>
         <div className="chip-select" style={{ marginTop: 10 }}>
@@ -409,7 +435,7 @@ export function Profile() {
         </div>
       </section>
 
-      {itemCount > 0 && <WearInsight top={top} forgotten={forgotten} />}
+      {itemCount > 0 && <WearInsight top={top} forgotten={forgotten} idleHighPrice={idleHighPrice} />}
 
       <div className="menu-list">
         <button type="button" className="menu-item" onClick={() => navigate('/wishlist')}>
@@ -431,6 +457,10 @@ export function Profile() {
         <button type="button" className="menu-item" disabled={busy} onClick={() => void exportBackup()}>
           <span>导出备份</span>
           <span>JSON v6</span>
+        </button>
+        <button type="button" className="menu-item" disabled={busy} onClick={() => void exportCsv()}>
+          <span>导出单品 CSV</span>
+          <span>表格</span>
         </button>
         <button type="button" className="menu-item" disabled={busy} onClick={() => fileRef.current?.click()}>
           <span>导入备份</span>
@@ -471,7 +501,7 @@ export function Profile() {
       </div>
 
       <p style={{ textAlign: 'center', marginTop: 24, fontSize: '0.75rem', color: 'var(--muted)' }}>
-        轻衣橱 v1.9
+        轻衣橱 v2.0
       </p>
 
       {toast && <Toast message={toast} onClose={() => setToast('')} />}

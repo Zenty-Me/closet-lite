@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import type { ItemWearStat } from '../utils/wearStats'
+import { formatYuan } from '../utils/valueStats'
 import { useBlobUrl } from '../hooks/useBlobUrl'
 
 function Row({
@@ -34,12 +35,13 @@ function Row({
 interface Props {
   top: ItemWearStat[]
   forgotten: ItemWearStat[]
+  idleHighPrice?: ItemWearStat[]
 }
 
-export function WearInsight({ top, forgotten }: Props) {
+export function WearInsight({ top, forgotten, idleHighPrice = [] }: Props) {
   const navigate = useNavigate()
 
-  if (top.length === 0 && forgotten.length === 0) return null
+  if (top.length === 0 && forgotten.length === 0 && idleHighPrice.length === 0) return null
 
   return (
     <div className="insight-block">
@@ -68,6 +70,22 @@ export function WearInsight({ top, forgotten }: Props) {
                 key={s.item.id}
                 stat={s}
                 badge={s.count === 0 ? '未穿' : `${s.count} 次`}
+                onClick={() => navigate(`/items/${s.item.id}`)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+      {idleHighPrice.length > 0 && (
+        <section className="insight-section">
+          <h3 className="insight-title">高价闲置</h3>
+          <p className="insight-hint">价格较高但很少穿着，考虑多搭几次或断舍离</p>
+          <div className="insight-list">
+            {idleHighPrice.map((s) => (
+              <Row
+                key={s.item.id}
+                stat={s}
+                badge={s.item.price != null ? formatYuan(s.item.price) : '—'}
                 onClick={() => navigate(`/items/${s.item.id}`)}
               />
             ))}

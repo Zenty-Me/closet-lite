@@ -16,6 +16,8 @@ export interface AppSettings {
   includeRetiredInValue: boolean
   /** 购物快捷搜索默认关键词 */
   shopSearchKeyword: string
+  /** 换季提醒横幅 */
+  seasonReminder: boolean
 }
 
 function defaults(): AppSettings {
@@ -25,6 +27,7 @@ function defaults(): AppSettings {
     subcategoryTaxonomy: {},
     includeRetiredInValue: false,
     shopSearchKeyword: '',
+    seasonReminder: true,
   }
 }
 
@@ -61,6 +64,7 @@ export function loadSettings(): AppSettings {
       subcategoryTaxonomy: normalizeTaxonomy(parsed.subcategoryTaxonomy),
       includeRetiredInValue: Boolean(parsed.includeRetiredInValue),
       shopSearchKeyword: typeof parsed.shopSearchKeyword === 'string' ? parsed.shopSearchKeyword : '',
+      seasonReminder: parsed.seasonReminder !== false,
     }
   } catch {
     return defaults()

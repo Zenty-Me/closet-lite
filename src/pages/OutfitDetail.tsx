@@ -1,5 +1,6 @@
 import { colorLabel } from '../types'
-import { useEffect, useState } from 'react'
+import { formatYuan } from '../utils/valueStats'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { softDeleteOutfit, getItemsByIds, getOutfit } from '../db'
 import type { ClothingItem, Outfit } from '../types'
@@ -51,6 +52,18 @@ export function OutfitDetail() {
     navigate('/outfits', { replace: true })
   }
 
+  const cost = useMemo(() => {
+    let sum = 0
+    let priced = 0
+    for (const it of items) {
+      if (it.price != null && it.price > 0) {
+        sum += it.price
+        priced++
+      }
+    }
+    return { sum, priced, total: items.length }
+  }, [items])
+
   if (!ready || !outfit) return null
 
   return (
@@ -59,11 +72,11 @@ export function OutfitDetail() {
         ← 返回
       </button>
       <h1 className="page-title">{outfit.name || '未命名搭配'}</h1>
-      {outfit.occasion ? (
-        <p className="page-sub">场合：{outfit.occasion}</p>
-      ) : (
-        <p className="page-sub">共 {items.length} 件单品</p>
-      )}
+      <p className="page-sub">
+        {outfit.occasion ? `场合：${outfit.occasion} · ` : ''}
+        共 {items.length} 件
+        {cost.priced > 0 ? ` · 搭配成本 ${formatYuan(cost.sum)}（${cost.priced} 件有价）` : ''}
+      </p>
 
       {coverUrl && (
         <img className="collage-preview" src={coverUrl} alt="搭配拼图" />
