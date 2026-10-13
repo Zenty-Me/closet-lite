@@ -51,8 +51,8 @@ export function OutfitForm() {
     void (async () => {
       const items = await getAllItems()
       setAllItems(items)
-      if (!isNew) {
-        const outfit = await getOutfit(id!)
+      if (!isNew && id) {
+        const outfit = await getOutfit(id)
         if (!outfit) {
           navigate('/outfits')
           return
@@ -78,9 +78,10 @@ export function OutfitForm() {
     }
     setSaving(true)
     const now = Date.now()
-    const existing = !isNew ? await getOutfit(id!) : undefined
+    const existing = !isNew && id ? await getOutfit(id) : undefined
+    const outfitId = existing?.id ?? uid()
     await saveOutfit({
-      id: existing?.id ?? uid(),
+      id: outfitId,
       name: name.trim() || '未命名搭配',
       occasion: occasion.trim(),
       itemIds,
@@ -88,14 +89,14 @@ export function OutfitForm() {
       updatedAt: now,
     })
     setSaving(false)
-    navigate('/outfits')
+    navigate(`/outfits/${outfitId}`, { replace: true })
   }
 
   const onDelete = async () => {
     if (!id || isNew) return
     if (!confirm('确定删除这套搭配？')) return
     await deleteOutfit(id)
-    navigate('/outfits')
+    navigate('/outfits', { replace: true })
   }
 
   if (!ready) return null
@@ -166,7 +167,7 @@ export function OutfitForm() {
 
       <div className="form-actions">
         {!isNew && (
-          <button type="button" className="btn btn-danger" onClick={onDelete}>
+          <button type="button" className="btn btn-danger" onClick={() => void onDelete()}>
             删除
           </button>
         )}
