@@ -17,7 +17,7 @@ import {
   normalizeOutfit,
   normalizeWearLog,
   type BackupData,
-  type BackupDataV4,
+  type BackupDataV5,
   type ClothingItem,
   type Inspiration,
   type Outfit,
@@ -117,13 +117,14 @@ export function Profile() {
           return { ...rest, imageBase64: await blobToBase64(imageBlob) }
         }),
       )
-      const data: BackupDataV4 = {
-        version: 4,
+      const data: BackupDataV5 = {
+        version: 5,
         exportedAt: new Date().toISOString(),
         items: exportedItems,
         outfits: exportedOutfits,
         wearLogs: exportedLogs,
         inspirations: exportedInsp,
+        subcategoryTaxonomy: loadSettings().subcategoryTaxonomy,
       }
       const blob = new Blob([JSON.stringify(data)], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
@@ -143,7 +144,7 @@ export function Profile() {
     setBusy(true)
     try {
       const data = JSON.parse(await file.text()) as BackupData
-      if (!data || ![1, 2, 3, 4].includes(data.version) || !Array.isArray(data.items)) {
+      if (!data || ![1, 2, 3, 4, 5].includes(data.version) || !Array.isArray(data.items)) {
         throw new Error('invalid')
       }
       if (
@@ -203,7 +204,7 @@ export function Profile() {
         }),
       )
       let inspirations: Inspiration[] = []
-      if ((data.version === 2 || data.version === 3 || data.version === 4) && 'inspirations' in data && Array.isArray(data.inspirations)) {
+      if ((data.version === 2 || data.version === 3 || data.version === 4 || data.version === 5) && 'inspirations' in data && Array.isArray(data.inspirations)) {
         inspirations = await Promise.all(
           data.inspirations.map(async (i) => {
             const { imageBase64, ...rest } = i
@@ -218,6 +219,18 @@ export function Profile() {
         )
       }
       await importAllData(items, outfits, wearLogs, inspirations)
+      if (data.version === 5 && 'subcategoryTaxonomy' in data && data.subcategoryTaxonomy) {
+        const cur = loadSettings()
+        const merged = { ...cur.subcategoryTaxonomy }
+        for (const [k, list] of Object.entries(data.subcategoryTaxonomy)) {
+          if (!Array.isArray(list)) continue
+          const prev = merged[k as keyof typeof merged] ?? []
+          merged[k as keyof typeof merged] = [...new Set([...prev, ...list.map((s) => String(s).trim()).filter(Boolean)])]
+        }
+        const next = { ...cur, subcategoryTaxonomy: merged }
+        saveSettings(next)
+        setSettings(next)
+      }
       await refresh()
       setToast('导入成功')
     } catch {
@@ -286,17 +299,21 @@ export function Profile() {
       {itemCount > 0 && <WearInsight top={top} forgotten={forgotten} />}
 
       <div className="menu-list">
+        <button type="button" className="menu-item" onClick={() => navigate('/categories')}>
+          <span>管理分类</span>
+          <span>子分类</span>
+        </button>
         <button type="button" className="menu-item" onClick={() => navigate('/recycle')}>
           <span>回收站</span>
           <span>恢复 / 彻底删除</span>
         </button>
         <button type="button" className="menu-item" disabled={busy} onClick={() => void exportBackup()}>
           <span>导出备份</span>
-          <span>JSON v4</span>
+          <span>JSON v5</span>
         </button>
         <button type="button" className="menu-item" disabled={busy} onClick={() => fileRef.current?.click()}>
           <span>导入备份</span>
-          <span>支持 v1–v4</span>
+          <span>支持 v1–v5</span>
         </button>
         <button type="button" className="menu-item" onClick={() => void clearData()}>
           <span style={{ color: 'var(--danger)' }}>清空全部数据</span>
@@ -333,7 +350,7 @@ export function Profile() {
       </div>
 
       <p style={{ textAlign: 'center', marginTop: 24, fontSize: '0.75rem', color: 'var(--muted)' }}>
-        轻衣橱 v1.5
+        轻衣橱 v1.6
       </p>
 
       {toast && <Toast message={toast} onClose={() => setToast('')} />}

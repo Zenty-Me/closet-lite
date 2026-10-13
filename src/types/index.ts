@@ -77,6 +77,8 @@ export interface ClothingItem {
   id: string
   name: string
   category: Category
+  /** User-defined under main category; empty = 未分子类 */
+  subcategory: string
   color: ColorName
   season: Season
   notes: string
@@ -167,7 +169,7 @@ export interface BackupDataV1 {
 export interface BackupDataV2 {
   version: 2
   exportedAt: string
-  items: Array<Omit<ClothingItem, 'imageBlob' | 'originalBlob' | 'extraImages' | 'tempMin' | 'tempMax' | 'status'> & {
+  items: Array<Omit<ClothingItem, 'imageBlob' | 'originalBlob' | 'extraImages' | 'tempMin' | 'tempMax' | 'status' | 'subcategory'> & {
     imageBase64: string
   }>
   outfits: Outfit[]
@@ -178,7 +180,7 @@ export interface BackupDataV2 {
 export interface BackupDataV3 {
   version: 3
   exportedAt: string
-  items: Array<Omit<ClothingItem, 'imageBlob' | 'originalBlob' | 'extraImages' | 'tempMin' | 'tempMax' | 'status'> & {
+  items: Array<Omit<ClothingItem, 'imageBlob' | 'originalBlob' | 'extraImages' | 'tempMin' | 'tempMax' | 'status' | 'subcategory'> & {
     imageBase64: string
     originalBase64?: string
   }>
@@ -196,7 +198,18 @@ export interface BackupDataV4 {
   inspirations: BackupInspirationV4[]
 }
 
-export type BackupData = BackupDataV1 | BackupDataV2 | BackupDataV3 | BackupDataV4
+/** v5: subcategory on items + custom taxonomy map */
+export interface BackupDataV5 {
+  version: 5
+  exportedAt: string
+  items: BackupItemV4[]
+  outfits: BackupOutfitV4[]
+  wearLogs: BackupWearLogV4[]
+  inspirations: BackupInspirationV4[]
+  subcategoryTaxonomy?: Partial<Record<Category, string[]>>
+}
+
+export type BackupData = BackupDataV1 | BackupDataV2 | BackupDataV3 | BackupDataV4 | BackupDataV5
 
 export function normalizeItem(
   raw: Partial<ClothingItem> &
@@ -211,6 +224,7 @@ export function normalizeItem(
     id: raw.id,
     name: raw.name ?? '',
     category,
+    subcategory: typeof raw.subcategory === 'string' ? raw.subcategory.trim() : '',
     color: raw.color,
     season: raw.season,
     notes: raw.notes ?? '',

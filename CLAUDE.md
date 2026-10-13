@@ -33,8 +33,8 @@
 src/
   pages/        # 衣橱、单品详情/表单、搭配、灵感、日历、我的、回收站
   components/   # BottomNav、ItemCard、ImageEditor、BatchEditSheet…
-  db/index.ts   # IndexedDB 封装（当前 DB_VERSION = 4）
-  types/        # 领域类型 + normalize* + BackupData v1–v4
+  db/index.ts   # IndexedDB 封装（当前 DB_VERSION = 5）
+  types/        # 领域类型 + normalize* + BackupData v1–v5
   utils/        # image / cutout / settings / wearStats / suggest / wardrobeQuery…
   hooks/        # useBlobUrl
 ```
@@ -47,13 +47,14 @@ src/
 | 2 | + `inspirations` |
 | 3 | soft fields: `originalBlob`（单品）、`coverBlob`（搭配）；`normalize*` |
 | 4 | `extraImages[]`、`tempMin`/`tempMax`、`status`；分类增「连衣裙」；UI 别名上装/下装 |
+| 5 | `subcategory` 字符串；自定义子分类 taxonomy 在 settings / 备份 v5 |
 
 Stores: `items`, `outfits`, `wearLogs`, `inspirations`. Soft-delete via `deletedAt`.
 
 ### Backups（我的 → 导出/导入）
 
-- Export **v4**（含 `extraImagesBase64`、温度、状态等）  
-- Import accepts **v1 / v2 / v3 / v4**  
+- Export **v5**（含 `subcategory` + `subcategoryTaxonomy`）  
+- Import accepts **v1–v5**  
 
 Settings（季节模式等）在 **localStorage** `qing-yichu-settings`；衣橱视图模式在 `qing-yichu-wardrobe-view`（`grouped` | `grid`）。
 

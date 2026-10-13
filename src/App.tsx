@@ -11,6 +11,7 @@ import { Profile } from './pages/Profile'
 import { Inspire } from './pages/Inspire'
 import { InspireForm } from './pages/InspireForm'
 import { RecycleBin } from './pages/RecycleBin'
+import { CategoryManage } from './pages/CategoryManage'
 
 export default function App() {
   return (
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="calendar" element={<Calendar />} />
           <Route path="me" element={<Profile />} />
           <Route path="recycle" element={<RecycleBin />} />
+          <Route path="categories" element={<CategoryManage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
