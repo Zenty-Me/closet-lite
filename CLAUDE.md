@@ -106,7 +106,7 @@ Push `main` → Actions → https://zenty-me.github.io/qing-yichu/
 - **Migrations:** 升 `DB_VERSION`；旧字段用 `normalize*` 默认；备份升版本且 **继续能 import 旧版**  
 - **Heavy libs:** 优先 dynamic import / CDN，避免把数十 MB WASM 打进 Pages  
 - **No backend** unless product explicitly changes  
-- Claude Code：`.claude/settings.json` 已用 **acceptEdits** + 全工具 `allow`（deny 空）。  
+- Claude Code：`.claude/settings.json` 已用 **acceptEdits** + 通配 `allow`（`Bash(*)`、`mcp__*` 等，deny/ask 空）。  
   注意：Claude Code **不会**从 project/local 生效 `bypassPermissions`；若要完全跳过提示，请在用户级 `~/.claude/settings.json` 设 `"defaultMode": "bypassPermissions"`，或启动时加 `--dangerously-skip-permissions` / `--permission-mode bypassPermissions`。可参考 `.claude/settings.local.json.example`  
 
 ## Quick “how to use” — 批量编辑（刚加）
