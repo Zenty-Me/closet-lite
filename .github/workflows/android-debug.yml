@@ -7,11 +7,14 @@ on:
     paths:
       - 'android/**'
       - 'src/**'
+      - 'public/**'
       - 'capacitor.config.ts'
       - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/android-debug.yml'
 
-# Builds a debug APK without signing secrets. Artifact downloadable from Actions.
-# Requires android/ project committed (run npm run android:sync locally once).
+permissions:
+  contents: write
 
 jobs:
   apk:
@@ -28,20 +31,35 @@ jobs:
           java-version: '17'
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools platforms;android-34 build-tools;34.0.0
       - run: npm ci
       - run: npm run fetch:bg-removal
       - name: Build web (native base)
         run: VITE_BASE=/ npx tsc -b && VITE_BASE=/ npx vite build
-      - name: Ensure android project
-        run: |
-          if [ ! -d android ]; then
-            npx cap add android
-          fi
-          npx cap sync android
+      - name: Capacitor sync
+        run: npx cap sync android
       - name: Assemble debug APK
         working-directory: android
         run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+      - name: Rename APK
+        run: |
+          mkdir -p dist-apk
+          cp android/app/build/outputs/apk/debug/*.apk dist-apk/qing-yichu-debug.apk
+          ls -lh dist-apk/
       - uses: actions/upload-artifact@v4
         with:
           name: qing-yichu-debug
-          path: android/app/build/outputs/apk/debug/*.apk
+          path: dist-apk/qing-yichu-debug.apk
+      - name: Publish to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="android-debug-latest"
+          gh release delete "$TAG" --yes 2>/dev/null || true
+          git tag -f "$TAG"
+          git push -f origin "refs/tags/$TAG"
+          gh release create "$TAG" dist-apk/qing-yichu-debug.apk \
+            --title "轻衣橱 Android Debug APK" \
+            --notes "可直接安装的 debug 包（需允许安装未知来源）。网页版：https://zenty-me.github.io/qing-yichu/" \
+            --latest=false
