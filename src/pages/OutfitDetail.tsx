@@ -15,7 +15,7 @@ function LargeThumb({ item, onClick }: { item: ClothingItem; onClick: () => void
       )}
       <span className="detail-thumb-label">{item.name || item.category}</span>
       <span className="detail-thumb-meta">
-        {item.category} · {item.color}
+        {item.category}  {item.color}
       </span>
     </button>
   )
