@@ -12,6 +12,7 @@ import { useBlobUrl } from '../hooks/useBlobUrl'
 import { EmptyState } from '../components/EmptyState'
 import { Toast } from '../components/Toast'
 import { ImagePicker } from '../components/ImagePicker'
+import { openPurchaseLink, openTaobao, openPinduoduo } from '../utils/shop'
 
 function WishThumb({ blob }: { blob?: Blob }) {
   const url = useBlobUrl(blob ?? null)
@@ -145,16 +146,23 @@ export function Wishlist() {
                   <div className="wish-card-title">{w.name}</div>
                   {w.priceNote && <div className="wish-card-meta">{w.priceNote}</div>}
                   {w.link && (
-                    <div className="wish-card-link" onClick={(e) => e.stopPropagation()}>
-                      <a href={w.link} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
-                        打开链接
-                      </a>
-                    </div>
+                    <div className="wish-card-link">已保存购买链接</div>
                   )}
                   {w.note && <div className="wish-card-note">{w.note}</div>}
                 </div>
               </button>
               <div className="wish-card-actions">
+                {w.link ? (
+                  <button type="button" className="btn-text" onClick={() => openPurchaseLink(w.link)}>
+                    打开链接
+                  </button>
+                ) : null}
+                <button type="button" className="btn-text" onClick={() => openTaobao(w.name)}>
+                  淘宝
+                </button>
+                <button type="button" className="btn-text" onClick={() => openPinduoduo(w.name)}>
+                  拼多多
+                </button>
                 <button type="button" className="btn-text" onClick={() => void toggleBought(w)}>
                   {w.bought ? '标为未买' : '已买'}
                 </button>

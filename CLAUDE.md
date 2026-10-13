@@ -33,7 +33,7 @@
 src/
   pages/        # 衣橱、单品详情/表单、搭配、灵感、日历、我的、回收站
   components/   # BottomNav、ItemCard、ImageEditor、BatchEditSheet…
-  db/index.ts   # IndexedDB 封装（当前 DB_VERSION = 7）
+  db/index.ts   # IndexedDB 封装（当前 DB_VERSION = 8）
   types/        # 领域类型 + normalize* + BackupData v1–v5（颜色已存 hex）
   utils/        # image / cutout / settings / wearStats / suggest / wardrobeQuery…
   hooks/        # useBlobUrl
@@ -50,6 +50,7 @@ src/
 | 5 | `subcategory` 字符串；自定义子分类 taxonomy 在 settings / 备份 v5 |
 | 6 | `color` 存 hex；旧中文色名经 `normalizeColorHex` 迁移 |
 | 7 | `wishlist` store；单品 `needsWash`；备份 v6 含想买 |
+| 8 | `purchaseLink`；衣橱估值 / 购物深链 |
 
 Stores: `items`, `outfits`, `wearLogs`, `inspirations`. Soft-delete via `deletedAt`.
 

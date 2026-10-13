@@ -1,7 +1,7 @@
 import type { Category, ClothingItem, Season, SeasonFilter } from '../types'
 import { normalizeColorHex } from '../types'
 
-export type SortKey = 'created' | 'updated' | 'wear' | 'name'
+export type SortKey = 'created' | 'updated' | 'wear' | 'name' | 'priceDesc' | 'priceAsc'
 
 export interface WardrobeQuery {
   search: string
@@ -60,6 +60,16 @@ export function filterAndSortItems(
       list.sort((a, b) =>
         (a.name || a.category).localeCompare(b.name || b.category, 'zh'),
       )
+      break
+    case 'priceDesc':
+      list.sort((a, b) => (b.price ?? -1) - (a.price ?? -1))
+      break
+    case 'priceAsc':
+      list.sort((a, b) => {
+        const ap = a.price == null ? Number.POSITIVE_INFINITY : a.price
+        const bp = b.price == null ? Number.POSITIVE_INFINITY : b.price
+        return ap - bp
+      })
       break
     case 'created':
     default:

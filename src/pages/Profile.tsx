@@ -33,6 +33,13 @@ import { rankItemsByWear, type ItemWearStat } from '../utils/wearStats'
 import { loadSettings, saveSettings, type AppSettings } from '../utils/settings'
 import { WearInsight } from '../components/WearInsight'
 import { Toast } from '../components/Toast'
+import { openTaobao, openPinduoduo } from '../utils/shop'
+import {
+  formatYuan,
+  summarizeWardrobeValue,
+  summarizeWishlistValue,
+  type WardrobeValueSummary,
+} from '../utils/valueStats'
 
 export function Profile() {
   const navigate = useNavigate()
@@ -40,6 +47,9 @@ export function Profile() {
   const [outfitCount, setOutfitCount] = useState(0)
   const [logCount, setLogCount] = useState(0)
   const [inspCount, setInspCount] = useState(0)
+  const [valueSummary, setValueSummary] = useState<WardrobeValueSummary | null>(null)
+  const [wishEstimate, setWishEstimate] = useState({ openCount: 0, openEstimate: 0 })
+  const [shopKw, setShopKw] = useState(() => loadSettings().shopSearchKeyword)
   const [top, setTop] = useState<ItemWearStat[]>([])
   const [forgotten, setForgotten] = useState<ItemWearStat[]>([])
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings())
@@ -48,12 +58,13 @@ export function Profile() {
   const fileRef = useRef<HTMLInputElement>(null)
 
   const refresh = useCallback(async () => {
-    const [items, logs, oc, lc, ic] = await Promise.all([
+    const [items, logs, oc, lc, ic, wishlist] = await Promise.all([
       getAllItems(),
       getAllWearLogs(),
       countOutfits(),
       countWearLogs(),
       countInspirations(),
+      getAllWishlist(),
     ])
     setItemCount(items.length)
     setOutfitCount(oc)
@@ -62,6 +73,10 @@ export function Profile() {
     const ranked = rankItemsByWear(items, logs)
     setTop(ranked.top)
     setForgotten(ranked.forgotten)
+    setValueSummary(
+      summarizeWardrobeValue(items, { includeRetired: loadSettings().includeRetiredInValue }),
+    )
+    setWishEstimate(summarizeWishlistValue(wishlist))
   }, [])
 
   useEffect(() => {
@@ -72,6 +87,10 @@ export function Profile() {
     const next = { ...settings, ...patch }
     setSettings(next)
     saveSettings(next)
+    if ('includeRetiredInValue' in patch || 'shopSearchKeyword' in patch) {
+      void refresh()
+      if ('shopSearchKeyword' in patch) setShopKw(next.shopSearchKeyword)
+    }
   }
 
   const exportBackup = async () => {
@@ -325,6 +344,71 @@ export function Profile() {
         </div>
       </section>
 
+      
+      {valueSummary && valueSummary.itemCount > 0 && (
+        <section className="insight-section value-section">
+          <h3 className="insight-title">衣橱估值</h3>
+          <div className="value-hero">{formatYuan(valueSummary.totalValue)}</div>
+          <p className="insight-hint">
+            {valueSummary.itemCount} 件 · {valueSummary.pricedCount} 件有价 · 均价{' '}
+            {valueSummary.pricedCount ? formatYuan(valueSummary.avgPrice) : '—'}
+          </p>
+          <label className="toggle-row">
+            <span>含已淘汰</span>
+            <input
+              type="checkbox"
+              checked={settings.includeRetiredInValue}
+              onChange={(e) => updateSettings({ includeRetiredInValue: e.target.checked })}
+            />
+          </label>
+          {wishEstimate.openCount > 0 && (
+            <p className="insight-hint" style={{ marginTop: 8 }}>
+              想买未购 {wishEstimate.openCount} 件
+              {wishEstimate.openEstimate > 0 ? ` · 备注估价约 ${formatYuan(wishEstimate.openEstimate)}` : ''}
+            </p>
+          )}
+          <div className="value-cat-list">
+            {valueSummary.byCategory.map((row) => (
+              <button
+                key={row.category}
+                type="button"
+                className="value-cat-row"
+                onClick={() => navigate(`/?category=${encodeURIComponent(row.category)}`)}
+              >
+                <span>{row.label}</span>
+                <span className="value-cat-meta">
+                  {row.count} 件
+                  {row.pricedCount ? ` · ${formatYuan(row.total)}` : ''}
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="insight-section">
+        <h3 className="insight-title">购物</h3>
+        <p className="insight-hint">快捷打开淘宝 / 拼多多（优先唤起 App，失败则打开网页）</p>
+        <div className="form-group">
+          <label className="form-label">默认搜索词（可选）</label>
+          <input
+            className="form-input"
+            value={shopKw}
+            onChange={(e) => setShopKw(e.target.value)}
+            onBlur={() => updateSettings({ shopSearchKeyword: shopKw.trim() })}
+            placeholder="例如：白衬衫"
+          />
+        </div>
+        <div className="shop-actions-row">
+          <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => openTaobao(shopKw)}>
+            打开淘宝
+          </button>
+          <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => openPinduoduo(shopKw)}>
+            打开拼多多
+          </button>
+        </div>
+      </section>
+
       {itemCount > 0 && <WearInsight top={top} forgotten={forgotten} />}
 
       <div className="menu-list">
@@ -387,7 +471,7 @@ export function Profile() {
       </div>
 
       <p style={{ textAlign: 'center', marginTop: 24, fontSize: '0.75rem', color: 'var(--muted)' }}>
-        轻衣橱 v1.8
+        轻衣橱 v1.9
       </p>
 
       {toast && <Toast message={toast} onClose={() => setToast('')} />}

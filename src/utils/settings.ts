@@ -12,6 +12,10 @@ export interface AppSettings {
   currentSeasonFilter: SeasonFilter
   /** Custom subcategory labels per main category */
   subcategoryTaxonomy: SubcategoryTaxonomy
+  /** 衣橱估值是否含已淘汰 */
+  includeRetiredInValue: boolean
+  /** 购物快捷搜索默认关键词 */
+  shopSearchKeyword: string
 }
 
 function defaults(): AppSettings {
@@ -19,6 +23,8 @@ function defaults(): AppSettings {
     seasonMode: false,
     currentSeasonFilter: currentSeason(),
     subcategoryTaxonomy: {},
+    includeRetiredInValue: false,
+    shopSearchKeyword: '',
   }
 }
 
@@ -53,6 +59,8 @@ export function loadSettings(): AppSettings {
           ? parsed.currentSeasonFilter
           : base.currentSeasonFilter,
       subcategoryTaxonomy: normalizeTaxonomy(parsed.subcategoryTaxonomy),
+      includeRetiredInValue: Boolean(parsed.includeRetiredInValue),
+      shopSearchKeyword: typeof parsed.shopSearchKeyword === 'string' ? parsed.shopSearchKeyword : '',
     }
   } catch {
     return defaults()
