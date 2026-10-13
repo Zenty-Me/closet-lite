@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7C6AF2"/>
+      <stop offset="100%" style="stop-color:#A78BFA"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112.64" fill="url(#g)"/>
+  <g fill="none" stroke="#fff" stroke-width="23.04" stroke-linecap="round" stroke-linejoin="round">
+    <!-- hanger -->
+    <path d="M 256 112.64 L 256 163.84"/>
+    <circle cx="256" cy="92.16" r="20.48"/>
+    <path d="M 112.64 215.04 Q 256 143.36 399.36 215.04"/>
+    <!-- shirt body -->
+    <path d="M 143.36 215.04 L 143.36 399.36 Q 256 419.84 368.64 399.36 L 368.64 215.04"/>
+    <path d="M 143.36 215.04 L 92.16 266.24 L 143.36 281.6"/>
+    <path d="M 368.64 215.04 L 419.84 266.24 L 368.64 281.6"/>
+  </g>
+</svg>
