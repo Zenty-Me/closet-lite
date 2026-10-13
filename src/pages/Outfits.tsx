@@ -63,7 +63,7 @@ export function Outfits() {
   }, [load])
 
   return (
-    <div>
+    <div className="page-with-fab">
       <h1 className="page-title">搭配</h1>
       <p className="page-sub">
         {outfits.length > 0 ? `共 ${outfits.length} 套搭配` : '组合单品，保存穿搭灵感'}

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   clearAllData,
-  countItems,
   countOutfits,
   countWearLogs,
   getAllItems,
@@ -11,20 +10,33 @@ import {
 } from '../db'
 import type { BackupData, ClothingItem } from '../types'
 import { base64ToBlob, blobToBase64 } from '../utils/image'
+import { rankItemsByWear, type ItemWearStat } from '../utils/wearStats'
+import { WearInsight } from '../components/WearInsight'
 import { Toast } from '../components/Toast'
 
 export function Profile() {
   const [itemCount, setItemCount] = useState(0)
   const [outfitCount, setOutfitCount] = useState(0)
   const [logCount, setLogCount] = useState(0)
+  const [top, setTop] = useState<ItemWearStat[]>([])
+  const [forgotten, setForgotten] = useState<ItemWearStat[]>([])
   const [toast, setToast] = useState('')
   const [busy, setBusy] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const refresh = useCallback(async () => {
-    setItemCount(await countItems())
-    setOutfitCount(await countOutfits())
-    setLogCount(await countWearLogs())
+    const [items, logs, oc, lc] = await Promise.all([
+      getAllItems(),
+      getAllWearLogs(),
+      countOutfits(),
+      countWearLogs(),
+    ])
+    setItemCount(items.length)
+    setOutfitCount(oc)
+    setLogCount(lc)
+    const ranked = rankItemsByWear(items, logs)
+    setTop(ranked.top)
+    setForgotten(ranked.forgotten)
   }, [])
 
   useEffect(() => {
@@ -134,6 +146,8 @@ export function Profile() {
         </div>
       </div>
 
+      {itemCount > 0 && <WearInsight top={top} forgotten={forgotten} />}
+
       <div className="menu-list">
         <button
           type="button"
@@ -197,7 +211,7 @@ export function Profile() {
           color: 'var(--text-secondary)',
         }}
       >
-        轻衣橱 v1 · 本地优先 · 开源免费
+        轻衣橱 v1.1 · 本地优先 · 开源免费
       </p>
 
       {toast && <Toast message={toast} onClose={() => setToast('')} />}

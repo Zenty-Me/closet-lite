@@ -1,21 +1,27 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getAllItems } from '../db'
+import { getAllItems, getAllWearLogs } from '../db'
 import type { ClothingItem, Category } from '../types'
 import { CATEGORIES } from '../types'
 import { ItemCard } from '../components/ItemCard'
 import { EmptyState } from '../components/EmptyState'
+import { TodaySuggest } from '../components/TodaySuggest'
+import { buildWearCounts } from '../utils/wearStats'
 
 export function Wardrobe() {
   const navigate = useNavigate()
   const [items, setItems] = useState<ClothingItem[]>([])
+  const [wearMap, setWearMap] = useState<Map<string, { count: number; lastWorn: string }>>(
+    () => new Map(),
+  )
   const [filter, setFilter] = useState<Category | '全部'>('全部')
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
     setLoading(true)
-    const list = await getAllItems()
+    const [list, logs] = await Promise.all([getAllItems(), getAllWearLogs()])
     setItems(list)
+    setWearMap(buildWearCounts(logs))
     setLoading(false)
   }, [])
 
@@ -23,15 +29,19 @@ export function Wardrobe() {
     void load()
   }, [load])
 
-  const filtered =
-    filter === '全部' ? items : items.filter((i) => i.category === filter)
+  const filtered = useMemo(
+    () => (filter === '全部' ? items : items.filter((i) => i.category === filter)),
+    [filter, items],
+  )
 
   return (
-    <div>
+    <div className="page-with-fab">
       <h1 className="page-title">衣橱</h1>
       <p className="page-sub">
         {items.length > 0 ? `共 ${items.length} 件单品` : '本地电子衣橱'}
       </p>
+
+      {!loading && items.length >= 2 && <TodaySuggest items={items} />}
 
       {items.length > 0 && (
         <div className="filter-row">
@@ -73,6 +83,7 @@ export function Wardrobe() {
             <ItemCard
               key={item.id}
               item={item}
+              wearCount={wearMap.get(item.id)?.count}
               onClick={() => navigate(`/items/${item.id}`)}
             />
           ))}

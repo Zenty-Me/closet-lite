@@ -8,7 +8,8 @@ import {
   type ColorName,
   type Season,
 } from '../types'
-import { deleteItem, getItem, saveItem, uid } from '../db'
+import { deleteItem, getAllWearLogs, getItem, saveItem, uid } from '../db'
+import { buildWearCounts } from '../utils/wearStats'
 import { compressImage } from '../utils/image'
 import { ImagePicker } from '../components/ImagePicker'
 import { useBlobUrl } from '../hooks/useBlobUrl'
@@ -28,6 +29,7 @@ export function ItemForm() {
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState('')
   const [ready, setReady] = useState(isNew)
+  const [wearCount, setWearCount] = useState(0)
 
   const preview = useBlobUrl(imageBlob)
 
@@ -45,6 +47,8 @@ export function ItemForm() {
       setSeason(item.season)
       setNotes(item.notes)
       setImageBlob(item.imageBlob)
+      const logs = await getAllWearLogs()
+      setWearCount(buildWearCounts(logs).get(item.id)?.count ?? 0)
       setReady(true)
     })()
   }, [id, isNew, navigate])
@@ -96,6 +100,11 @@ export function ItemForm() {
         ← 返回
       </button>
       <h1 className="page-title">{isNew ? '添加单品' : '编辑单品'}</h1>
+      {!isNew && (
+        <p className="page-sub">
+          {wearCount > 0 ? `已记录穿着 ${wearCount} 次` : '尚未出现在穿着记录中'}
+        </p>
+      )}
 
       {preview && <img className="image-preview" src={preview} alt="预览" />}
       <ImagePicker onPick={onPick} />
