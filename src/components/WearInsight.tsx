@@ -23,7 +23,7 @@ function Row({
         <div className="insight-name">{stat.item.name || stat.item.category}</div>
         <div className="insight-meta">
           {stat.item.category}
-          {stat.lastWorn ? ` · 最近 ${stat.lastWorn}` : ' · 从未穿过'}
+          {stat.lastWorn ? `，最近 ${stat.lastWorn}` : '，从未穿过'}
         </div>
       </div>
       <span className="insight-badge">{badge}</span>

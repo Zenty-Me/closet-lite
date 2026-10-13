@@ -211,7 +211,7 @@ export function Profile() {
           color: 'var(--text-secondary)',
         }}
       >
-        轻衣橱 v1.1 · 本地优先 · 开源免费
+        轻衣橱 v1.2
       </p>
 
       {toast && <Toast message={toast} onClose={() => setToast('')} />}

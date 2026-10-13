@@ -41,7 +41,7 @@ export function TodaySuggest({ items }: Props) {
     const id = uid()
     await saveOutfit({
       id,
-      name: `今日可穿 · ${season}`,
+      name: `今日可穿（${season}）`,
       occasion: '日常',
       itemIds: picks.map((p) => p.id),
       createdAt: now,
@@ -62,7 +62,7 @@ export function TodaySuggest({ items }: Props) {
     return (
       <section className="suggest-card">
         <div className="suggest-head">
-          <h3>今日可穿 · {season}</h3>
+          <h3>今日可穿（{season}）</h3>
         </div>
         <p className="suggest-empty">
           当前季节还没有合适的单品。添加标注为「{season}」或「四季」的衣服试试。
@@ -74,7 +74,7 @@ export function TodaySuggest({ items }: Props) {
   return (
     <section className="suggest-card">
       <div className="suggest-head">
-        <h3>今日可穿 · {season}</h3>
+        <h3>今日可穿（{season}）</h3>
         <button type="button" className="btn-text" onClick={refresh}>
           换一套
         </button>
