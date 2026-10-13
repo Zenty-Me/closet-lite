@@ -1,7 +1,20 @@
 {
   "permissions": {
     "defaultMode": "bypassPermissions",
-    "allow": ["Bash", "Read", "Write", "Edit", "Glob", "Grep", "WebFetch", "WebSearch", "Agent", "NotebookEdit", "Skill", "WebFetch(domain:*)"],
+    "allow": [
+      "Bash(*)",
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
+      "Glob(*)",
+      "Grep(*)",
+      "WebFetch(*)",
+      "WebSearch(*)",
+      "Agent(*)",
+      "NotebookEdit(*)",
+      "Skill(*)",
+      "mcp__*"
+    ],
     "deny": [],
     "ask": []
   }
