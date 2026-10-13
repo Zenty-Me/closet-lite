@@ -29,6 +29,7 @@ export function ItemCard({ item, onClick, wearCount, selectMode, selected }: Pro
         {typeof wearCount === 'number' && wearCount > 0 && !selectMode && (
           <span className="wear-pill">穿 {wearCount}</span>
         )}
+        {item.needsWash && !selectMode && <span className="laundry-pill">待洗</span>}
         {selectMode && (
           <span className={`select-check${selected ? ' on' : ''}`} aria-hidden>
             {selected ? '✓' : ''}

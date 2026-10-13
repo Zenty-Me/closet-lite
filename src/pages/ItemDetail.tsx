@@ -192,6 +192,12 @@ export function ItemDetail() {
           status={item.status}
           onClick={() => setFieldEdit('status')}
         />
+        <AttrRow
+          label="待洗"
+          value={item.needsWash ? '待洗' : '干净'}
+          muted={!item.needsWash}
+          onClick={() => void patch({ needsWash: !item.needsWash })}
+        />
       </div>
 
       <div className="detail-action-bar">

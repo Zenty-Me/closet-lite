@@ -40,7 +40,12 @@ export function Inspire() {
   return (
     <div className="page-with-fab">
       <h1 className="page-title">灵感</h1>
-      <p className="page-sub">收藏穿搭灵感图，本地保存</p>
+      <p className="page-sub">
+        收藏穿搭灵感图 ·{' '}
+        <button type="button" className="btn-text" style={{ minHeight: 'auto', padding: 0 }} onClick={() => navigate('/wishlist')}>
+          想买清单 →
+        </button>
+      </p>
 
       {loading ? null : list.length === 0 ? (
         <EmptyState

@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAllItems, getAllOutfits, getItemsByIds, saveOutfit, uid } from '../db'
 import type { ClothingItem, Outfit } from '../types'
+import { OCCASIONS } from '../types'
 import { EmptyState } from '../components/EmptyState'
 import { useBlobUrl } from '../hooks/useBlobUrl'
 import { randomOutfit } from '../utils/randomOutfit'
@@ -49,6 +50,7 @@ export function Outfits() {
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState('')
   const [saving, setSaving] = useState(false)
+  const [occasionFilter, setOccasionFilter] = useState<string | '全部'>('全部')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -61,6 +63,21 @@ export function Outfits() {
   useEffect(() => {
     void load()
   }, [load])
+
+  const occasionOptions = useMemo(() => {
+    const set = new Set<string>()
+    for (const o of OCCASIONS) set.add(o)
+    for (const o of outfits) {
+      const x = o.occasion.trim()
+      if (x) set.add(x)
+    }
+    return ['全部', ...set]
+  }, [outfits])
+
+  const filteredOutfits = useMemo(() => {
+    if (occasionFilter === '全部') return outfits
+    return outfits.filter((o) => o.occasion.trim() === occasionFilter)
+  }, [outfits, occasionFilter])
 
   const rollRandom = () => {
     const settings = loadSettings()
@@ -98,6 +115,21 @@ export function Outfits() {
       <p className="page-sub">
         {outfits.length > 0 ? `共 ${outfits.length} 套搭配` : '组合单品，保存穿搭灵感'}
       </p>
+
+      {outfits.length > 0 && (
+        <div className="chip-select" style={{ marginBottom: 14 }}>
+          {occasionOptions.map((o) => (
+            <button
+              key={o}
+              type="button"
+              className={`chip${occasionFilter === o ? ' active' : ''}`}
+              onClick={() => setOccasionFilter(o)}
+            >
+              {o}
+            </button>
+          ))}
+        </div>
+      )}
 
       {allItems.length >= 2 && (
         <button type="button" className="btn btn-secondary btn-block" style={{ marginBottom: 14 }} onClick={rollRandom}>
@@ -156,9 +188,17 @@ export function Outfits() {
           actionLabel="创建搭配"
           onAction={() => navigate('/outfits/new')}
         />
+      ) : filteredOutfits.length === 0 ? (
+        <EmptyState
+          icon="🏷️"
+          title="没有该场合的搭配"
+          description="试试切换场合，或新建一套并标注场合"
+          actionLabel="清除筛选"
+          onAction={() => setOccasionFilter('全部')}
+        />
       ) : (
         <div className="outfit-list">
-          {outfits.map((o) => (
+          {filteredOutfits.map((o) => (
             <OutfitCard
               key={o.id}
               outfit={o}

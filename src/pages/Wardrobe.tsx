@@ -72,6 +72,7 @@ export function Wardrobe() {
   const [selectMode, setSelectMode] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(() => new Set())
   const [showBatchEdit, setShowBatchEdit] = useState(false)
+  const [laundryOnly, setLaundryOnly] = useState(false)
   /** per-category subcategory filter; '' = 全部 */
   const [subFilter, setSubFilter] = useState<Partial<Record<Category, string>>>({})
 
@@ -106,8 +107,9 @@ export function Wardrobe() {
         seasonMode: settings.seasonMode,
         currentSeasonFilter: settings.currentSeasonFilter,
         wearCounts: wearMap,
+        laundryOnly,
       }),
-    [items, search, category, color, season, sort, settings, wearMap],
+    [items, search, category, color, season, sort, settings, wearMap, laundryOnly],
   )
 
   const sections = useMemo(() => {
@@ -180,6 +182,7 @@ export function Wardrobe() {
           tempMin: null,
           tempMax: null,
           status: '使用中',
+          needsWash: false,
           subcategory: '',
           createdAt: now + i,
           updatedAt: now + i,
@@ -300,6 +303,25 @@ export function Wardrobe() {
             type="button"
             onClick={() => {
               setShowMoreMenu(false)
+              setLaundryOnly((v) => !v)
+              setToast(laundryOnly ? '已关闭待洗筛选' : '仅显示待洗')
+            }}
+          >
+            {laundryOnly ? '关闭待洗筛选' : '仅看待洗'}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowMoreMenu(false)
+              navigate('/laundry')
+            }}
+          >
+            待洗列表
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowMoreMenu(false)
               navigate('/categories')
             }}
           >
@@ -308,6 +330,13 @@ export function Wardrobe() {
           <button type="button" onClick={() => { setShowMoreMenu(false); navigate('/me') }}>
             我的 / 回收站
           </button>
+        </div>
+      )}
+
+      {laundryOnly && (
+        <div className="filter-banner">
+          正在筛选待洗单品
+          <button type="button" className="btn-text" onClick={() => setLaundryOnly(false)}>清除</button>
         </div>
       )}
 

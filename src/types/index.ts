@@ -83,6 +83,9 @@ export function colorLabel(hex: string): string {
   return hit ? hit.label : h.toUpperCase()
 }
 
+export const OCCASIONS = ['日常', '通勤', '约会', '正式', '运动', '居家', '旅行', '派对'] as const
+export type Occasion = (typeof OCCASIONS)[number]
+
 export const ITEM_STATUSES = ['使用中', '闲置', '收纳中', '已淘汰'] as const
 export type ItemStatus = (typeof ITEM_STATUSES)[number]
 
@@ -109,6 +112,8 @@ export interface ClothingItem {
   tempMin: number | null
   tempMax: number | null
   status: ItemStatus
+  /** 待洗 / 脏衣 */
+  needsWash: boolean
   createdAt: number
   updatedAt: number
   deletedAt?: number | null
@@ -134,6 +139,33 @@ export interface WearLog {
   weather: string
   photoBlob?: Blob
   createdAt: number
+}
+
+
+export interface WishlistItem {
+  id: string
+  name: string
+  priceNote: string
+  link: string
+  note: string
+  imageBlob?: Blob
+  bought: boolean
+  createdAt: number
+  updatedAt: number
+}
+
+export function normalizeWishlist(raw: Partial<WishlistItem> & Pick<WishlistItem, 'id' | 'createdAt' | 'updatedAt'>): WishlistItem {
+  return {
+    id: raw.id,
+    name: raw.name ?? '',
+    priceNote: raw.priceNote ?? '',
+    link: raw.link ?? '',
+    note: raw.note ?? '',
+    imageBlob: raw.imageBlob,
+    bought: Boolean(raw.bought),
+    createdAt: raw.createdAt,
+    updatedAt: raw.updatedAt,
+  }
 }
 
 export interface Inspiration {
@@ -224,7 +256,20 @@ export interface BackupDataV5 {
   subcategoryTaxonomy?: Partial<Record<Category, string[]>>
 }
 
-export type BackupData = BackupDataV1 | BackupDataV2 | BackupDataV3 | BackupDataV4 | BackupDataV5
+export type BackupWishlistV6 = Omit<WishlistItem, 'imageBlob'> & { imageBase64?: string }
+
+export interface BackupDataV6 {
+  version: 6
+  exportedAt: string
+  items: BackupItemV4[]
+  outfits: BackupOutfitV4[]
+  wearLogs: BackupWearLogV4[]
+  inspirations: BackupInspirationV4[]
+  subcategoryTaxonomy?: Partial<Record<Category, string[]>>
+  wishlist?: BackupWishlistV6[]
+}
+
+export type BackupData = BackupDataV1 | BackupDataV2 | BackupDataV3 | BackupDataV4 | BackupDataV5 | BackupDataV6
 
 export function normalizeItem(
   raw: Partial<ClothingItem> &
@@ -257,6 +302,7 @@ export function normalizeItem(
     status: (ITEM_STATUSES as readonly string[]).includes(raw.status as string)
       ? (raw.status as ItemStatus)
       : '使用中',
+    needsWash: Boolean(raw.needsWash),
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
     deletedAt: raw.deletedAt ?? null,

@@ -12,6 +12,8 @@ export interface WardrobeQuery {
   seasonMode: boolean
   currentSeasonFilter: SeasonFilter
   wearCounts: Map<string, number>
+  /** 仅显示待洗 */
+  laundryOnly?: boolean
 }
 
 export function filterAndSortItems(
@@ -27,6 +29,7 @@ export function filterAndSortItems(
     if (q.category !== '全部' && item.category !== q.category) return false
     if (q.color !== '全部' && normalizeColorHex(item.color) !== normalizeColorHex(q.color)) return false
     if (q.season !== '全部' && item.season !== q.season) return false
+    if (q.laundryOnly && !item.needsWash) return false
     if (needle) {
       const hay = [
         item.name,
