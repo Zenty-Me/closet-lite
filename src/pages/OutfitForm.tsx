@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   softDeleteOutfit,
@@ -11,6 +11,7 @@ import type { ClothingItem } from '../types'
 import { useBlobUrl } from '../hooks/useBlobUrl'
 import { Toast } from '../components/Toast'
 import { EmptyState } from '../components/EmptyState'
+import { buildCollage } from '../utils/image'
 
 function PickCell({
   item,
@@ -43,9 +44,12 @@ export function OutfitForm() {
   const [occasion, setOccasion] = useState('')
   const [itemIds, setItemIds] = useState<string[]>([])
   const [allItems, setAllItems] = useState<ClothingItem[]>([])
+  const [coverBlob, setCoverBlob] = useState<Blob | undefined>()
   const [saving, setSaving] = useState(false)
+  const [collaging, setCollaging] = useState(false)
   const [toast, setToast] = useState('')
   const [ready, setReady] = useState(false)
+  const coverUrl = useBlobUrl(coverBlob ?? null)
 
   useEffect(() => {
     void (async () => {
@@ -60,15 +64,37 @@ export function OutfitForm() {
         setName(outfit.name)
         setOccasion(outfit.occasion)
         setItemIds(outfit.itemIds)
+        setCoverBlob(outfit.coverBlob)
       }
       setReady(true)
     })()
   }, [id, isNew, navigate])
 
+  const selectedItems = useMemo(
+    () => itemIds.map((iid) => allItems.find((i) => i.id === iid)).filter(Boolean) as ClothingItem[],
+    [itemIds, allItems],
+  )
+
   const toggle = (itemId: string) => {
     setItemIds((prev) =>
       prev.includes(itemId) ? prev.filter((x) => x !== itemId) : [...prev, itemId],
     )
+  }
+
+  const makeCollage = async () => {
+    if (selectedItems.length === 0) {
+      setToast('请先选择单品')
+      return
+    }
+    setCollaging(true)
+    try {
+      const blob = await buildCollage(selectedItems.map((i) => i.imageBlob))
+      setCoverBlob(blob)
+      setToast('拼图已生成')
+    } catch {
+      setToast('拼图失败')
+    }
+    setCollaging(false)
   }
 
   const onSave = async () => {
@@ -85,6 +111,7 @@ export function OutfitForm() {
       name: name.trim() || '未命名搭配',
       occasion: occasion.trim(),
       itemIds,
+      coverBlob,
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
       deletedAt: null,
@@ -163,6 +190,28 @@ export function OutfitForm() {
               onToggle={() => toggle(it.id)}
             />
           ))}
+        </div>
+      </div>
+
+      <div className="form-group">
+        <div className="form-label">拼图封面（可选）</div>
+        <p className="insight-hint">按已选单品顺序竖向拼成一张 lookboard</p>
+        {coverUrl && <img className="collage-preview" src={coverUrl} alt="拼图预览" />}
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            style={{ flex: 1 }}
+            disabled={collaging || itemIds.length === 0}
+            onClick={() => void makeCollage()}
+          >
+            {collaging ? '生成中…' : '生成拼图'}
+          </button>
+          {coverBlob && (
+            <button type="button" className="btn btn-ghost" onClick={() => setCoverBlob(undefined)}>
+              清除
+            </button>
+          )}
         </div>
       </div>
 

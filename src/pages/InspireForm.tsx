@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { deleteInspiration, getInspiration, saveInspiration, uid } from '../db'
 import { compressImage } from '../utils/image'
 import { ImagePicker } from '../components/ImagePicker'
-import { useBlobUrl } from '../hooks/useBlobUrl'
+import { ImageEditor } from '../components/ImageEditor'
 import { Toast } from '../components/Toast'
 
 export function InspireForm() {
@@ -16,7 +16,6 @@ export function InspireForm() {
   const [ready, setReady] = useState(isNew)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState('')
-  const preview = useBlobUrl(imageBlob)
 
   useEffect(() => {
     if (isNew) return
@@ -74,7 +73,13 @@ export function InspireForm() {
         ← 返回
       </button>
       <h1 className="page-title">{isNew ? '添加灵感' : '编辑灵感'}</h1>
-      {preview && <img className="image-preview" src={preview} alt="预览" />}
+      {imageBlob ? (
+        <ImageEditor
+          blob={imageBlob}
+          enableCutout={false}
+          onChange={setImageBlob}
+        />
+      ) : null}
       <ImagePicker onPick={async (f) => {
         try {
           setImageBlob(await compressImage(f))

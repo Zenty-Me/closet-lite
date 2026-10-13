@@ -19,11 +19,13 @@ function OutfitThumb({ item }: { item: ClothingItem }) {
 
 function OutfitCard({ outfit, onClick }: { outfit: Outfit; onClick: () => void }) {
   const [items, setItems] = useState<ClothingItem[]>([])
+  const coverUrl = useBlobUrl(outfit.coverBlob ?? null)
   useEffect(() => {
     void getItemsByIds(outfit.itemIds).then(setItems)
   }, [outfit.itemIds])
   return (
     <button type="button" className="outfit-card" onClick={onClick}>
+      {coverUrl && <img className="outfit-cover" src={coverUrl} alt="" />}
       <div className="outfit-card-title">{outfit.name || '未命名搭配'}</div>
       {outfit.occasion && <div className="outfit-card-occ">{outfit.occasion}</div>}
       <div className="outfit-thumbs">
