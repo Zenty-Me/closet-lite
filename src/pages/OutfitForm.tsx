@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   softDeleteOutfit,
   getAllItems,
@@ -37,8 +37,10 @@ function PickCell({
 
 export function OutfitForm() {
   const { id } = useParams()
+  const [searchParams] = useSearchParams()
   const isNew = !id || id === 'new'
   const navigate = useNavigate()
+  const seedItem = searchParams.get('item')
 
   const [name, setName] = useState('')
   const [occasion, setOccasion] = useState('')
@@ -65,10 +67,12 @@ export function OutfitForm() {
         setOccasion(outfit.occasion)
         setItemIds(outfit.itemIds)
         setCoverBlob(outfit.coverBlob)
+      } else if (isNew && seedItem) {
+        setItemIds([seedItem])
       }
       setReady(true)
     })()
-  }, [id, isNew, navigate])
+  }, [id, isNew, navigate, seedItem])
 
   const selectedItems = useMemo(
     () => itemIds.map((iid) => allItems.find((i) => i.id === iid)).filter(Boolean) as ClothingItem[],

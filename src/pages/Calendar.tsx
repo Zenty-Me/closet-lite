@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   getAllItems,
   getAllOutfits,
@@ -43,6 +44,9 @@ function startOfWeek(d: Date): Date {
 }
 
 export function Calendar() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const seedItem = searchParams.get('item')
+  const seedConsumed = useRef(false)
   const today = useMemo(() => new Date(), [])
   const [view, setView] = useState<'month' | 'week'>('month')
   const [year, setYear] = useState(today.getFullYear())
@@ -171,17 +175,35 @@ export function Calendar() {
           })(),
         ).slice(5)}`
 
-  const openPicker = async () => {
+  const openPicker = async (opts?: { seedItemId?: string | null }) => {
     setOutfits(await getAllOutfits())
     setAllItems(await getAllItems())
-    setPickMode('outfit')
-    setPickedItems(dayLog?.itemIds ?? [])
-    setPickedOutfit(dayLog?.outfitId ?? '')
+    const seed = opts?.seedItemId
+    if (seed) {
+      setPickMode('items')
+      setPickedItems([seed])
+      setPickedOutfit('')
+    } else {
+      setPickMode('outfit')
+      setPickedItems(dayLog?.itemIds ?? [])
+      setPickedOutfit(dayLog?.outfitId ?? '')
+    }
     setNote(dayLog?.note ?? '')
     setWeather(dayLog?.weather ?? '')
     setPhotoBlob(dayLog?.photoBlob)
     setShowPicker(true)
   }
+
+  useEffect(() => {
+    if (!seedItem || seedConsumed.current) return
+    seedConsumed.current = true
+    void openPicker({ seedItemId: seedItem }).then(() => {
+      const next = new URLSearchParams(searchParams)
+      next.delete('item')
+      setSearchParams(next, { replace: true })
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seedItem])
 
   const saveLog = async () => {
     let itemIds = pickedItems

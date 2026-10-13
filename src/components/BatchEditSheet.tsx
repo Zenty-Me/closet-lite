@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import {
   CATEGORIES,
+  CATEGORY_LABEL,
   COLORS,
   SEASONS,
   type Category,
@@ -86,7 +87,7 @@ export function BatchEditSheet({ count, onApply, onClose }: Props) {
                 className={`chip${category === c ? ' active' : ''}`}
                 onClick={() => setCategory(c)}
               >
-                {c}
+                {CATEGORY_LABEL[c]}
               </button>
             ))}
           </div>
