@@ -8,7 +8,7 @@ import {
   type ColorName,
   type Season,
 } from '../types'
-import { deleteItem, getAllWearLogs, getItem, saveItem, uid } from '../db'
+import { getAllWearLogs, getItem, saveItem, softDeleteItem, uid } from '../db'
 import { buildWearCounts } from '../utils/wearStats'
 import { compressImage } from '../utils/image'
 import { ImagePicker } from '../components/ImagePicker'
@@ -25,6 +25,12 @@ export function ItemForm() {
   const [color, setColor] = useState<ColorName>('黑')
   const [season, setSeason] = useState<Season>('四季')
   const [notes, setNotes] = useState('')
+  const [brand, setBrand] = useState('')
+  const [price, setPrice] = useState('')
+  const [size, setSize] = useState('')
+  const [location, setLocation] = useState('')
+  const [tagsText, setTagsText] = useState('')
+  const [purchaseDate, setPurchaseDate] = useState('')
   const [imageBlob, setImageBlob] = useState<Blob | null>(null)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState('')
@@ -37,7 +43,7 @@ export function ItemForm() {
     if (isNew) return
     void (async () => {
       const item = await getItem(id!)
-      if (!item) {
+      if (!item || item.deletedAt) {
         navigate('/')
         return
       }
@@ -46,6 +52,12 @@ export function ItemForm() {
       setColor(item.color)
       setSeason(item.season)
       setNotes(item.notes)
+      setBrand(item.brand)
+      setPrice(item.price != null ? String(item.price) : '')
+      setSize(item.size)
+      setLocation(item.location)
+      setTagsText(item.tags.join(' '))
+      setPurchaseDate(item.purchaseDate)
       setImageBlob(item.imageBlob)
       const logs = await getAllWearLogs()
       setWearCount(buildWearCounts(logs).get(item.id)?.count ?? 0)
@@ -55,12 +67,17 @@ export function ItemForm() {
 
   const onPick = async (file: File) => {
     try {
-      const blob = await compressImage(file)
-      setImageBlob(blob)
+      setImageBlob(await compressImage(file))
     } catch {
       setToast('图片处理失败，请重试')
     }
   }
+
+  const parseTags = (text: string) =>
+    text
+      .split(/[,，\s]+/)
+      .map((t) => t.trim())
+      .filter(Boolean)
 
   const onSave = async () => {
     if (!imageBlob) {
@@ -70,6 +87,7 @@ export function ItemForm() {
     setSaving(true)
     const now = Date.now()
     const existing = !isNew ? await getItem(id!) : undefined
+    const priceNum = price.trim() === '' ? null : Number(price)
     await saveItem({
       id: existing?.id ?? uid(),
       name: name.trim(),
@@ -77,9 +95,16 @@ export function ItemForm() {
       color,
       season,
       notes: notes.trim(),
+      brand: brand.trim(),
+      price: priceNum != null && !Number.isNaN(priceNum) ? priceNum : null,
+      size: size.trim(),
+      location: location.trim(),
+      tags: parseTags(tagsText),
+      purchaseDate: purchaseDate,
       imageBlob,
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
+      deletedAt: null,
     })
     setSaving(false)
     navigate('/')
@@ -87,8 +112,8 @@ export function ItemForm() {
 
   const onDelete = async () => {
     if (!id || isNew) return
-    if (!confirm('确定删除这件单品？相关搭配中的引用也会移除。')) return
-    await deleteItem(id)
+    if (!confirm('移入回收站？之后可在「我的 → 回收站」恢复或彻底删除。')) return
+    await softDeleteItem(id)
     navigate('/')
   }
 
@@ -171,6 +196,86 @@ export function ItemForm() {
       </div>
 
       <div className="form-group">
+        <label className="form-label" htmlFor="brand">
+          品牌
+        </label>
+        <input
+          id="brand"
+          className="form-input"
+          value={brand}
+          onChange={(e) => setBrand(e.target.value)}
+          placeholder="可选"
+        />
+      </div>
+
+      <div className="form-row-2">
+        <div className="form-group">
+          <label className="form-label" htmlFor="price">
+            价格
+          </label>
+          <input
+            id="price"
+            className="form-input"
+            inputMode="decimal"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            placeholder="可选"
+          />
+        </div>
+        <div className="form-group">
+          <label className="form-label" htmlFor="size">
+            尺码
+          </label>
+          <input
+            id="size"
+            className="form-input"
+            value={size}
+            onChange={(e) => setSize(e.target.value)}
+            placeholder="S / M / 38…"
+          />
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label className="form-label" htmlFor="location">
+          收纳位置
+        </label>
+        <input
+          id="location"
+          className="form-input"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          placeholder="例如：衣柜上层"
+        />
+      </div>
+
+      <div className="form-group">
+        <label className="form-label" htmlFor="tags">
+          标签（空格或逗号分隔）
+        </label>
+        <input
+          id="tags"
+          className="form-input"
+          value={tagsText}
+          onChange={(e) => setTagsText(e.target.value)}
+          placeholder="通勤 基础款"
+        />
+      </div>
+
+      <div className="form-group">
+        <label className="form-label" htmlFor="purchaseDate">
+          购买日期
+        </label>
+        <input
+          id="purchaseDate"
+          className="form-input"
+          type="date"
+          value={purchaseDate}
+          onChange={(e) => setPurchaseDate(e.target.value)}
+        />
+      </div>
+
+      <div className="form-group">
         <label className="form-label" htmlFor="notes">
           备注
         </label>
@@ -179,13 +284,13 @@ export function ItemForm() {
           className="form-textarea"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="品牌、尺码、购买地点…"
+          placeholder="面料、洗涤说明…"
         />
       </div>
 
       <div className="form-actions">
         {!isNew && (
-          <button type="button" className="btn btn-danger" onClick={onDelete}>
+          <button type="button" className="btn btn-danger" onClick={() => void onDelete()}>
             删除
           </button>
         )}

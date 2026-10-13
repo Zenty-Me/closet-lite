@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
-  deleteOutfit,
+  softDeleteOutfit,
   getAllItems,
   getOutfit,
   saveOutfit,
@@ -87,6 +87,7 @@ export function OutfitForm() {
       itemIds,
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
+      deletedAt: null,
     })
     setSaving(false)
     navigate(`/outfits/${outfitId}`, { replace: true })
@@ -94,8 +95,8 @@ export function OutfitForm() {
 
   const onDelete = async () => {
     if (!id || isNew) return
-    if (!confirm('确定删除这套搭配？')) return
-    await deleteOutfit(id)
+    if (!confirm('移入回收站？可在「我的 → 回收站」恢复。')) return
+    await softDeleteOutfit(id)
     navigate('/outfits', { replace: true })
   }
 
