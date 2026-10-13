@@ -376,7 +376,7 @@ export function Profile() {
           <h3 className="insight-title">衣橱估值</h3>
           <div className="value-hero">{formatYuan(valueSummary.totalValue)}</div>
           <p className="insight-hint">
-            {valueSummary.itemCount} 件 · {valueSummary.pricedCount} 件有价 · 均价{' '}
+            {valueSummary.itemCount} 件，{valueSummary.pricedCount} 件有价，均价{' '}
             {valueSummary.pricedCount ? formatYuan(valueSummary.avgPrice) : '—'}
           </p>
           <label className="toggle-row">
@@ -390,7 +390,7 @@ export function Profile() {
           {wishEstimate.openCount > 0 && (
             <p className="insight-hint" style={{ marginTop: 8 }}>
               想买未购 {wishEstimate.openCount} 件
-              {wishEstimate.openEstimate > 0 ? ` · 备注估价约 ${formatYuan(wishEstimate.openEstimate)}` : ''}
+              {wishEstimate.openEstimate > 0 ? `，备注估价约 ${formatYuan(wishEstimate.openEstimate)}` : ''}
             </p>
           )}
           <div className="value-cat-list">
@@ -404,7 +404,7 @@ export function Profile() {
                 <span>{row.label}</span>
                 <span className="value-cat-meta">
                   {row.count} 件
-                  {row.pricedCount ? ` · ${formatYuan(row.total)}` : ''}
+                  {row.pricedCount ? `  ${formatYuan(row.total)}` : ''}
                 </span>
               </button>
             ))}

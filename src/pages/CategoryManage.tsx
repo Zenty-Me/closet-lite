@@ -114,7 +114,7 @@ export function CategoryManage() {
         ← 返回
       </button>
       <h1 className="page-title">管理分类</h1>
-      <p className="page-sub">主分类固定；子分类可自定义（如上衣 → 开衫）。删除标签不会强制删单品。</p>
+      <p className="page-sub">主分类固定；子分类可自定义（例如上衣下的开衫）。删除标签不会强制删单品。</p>
 
       <div className="form-group">
         <div className="form-label">主分类</div>
@@ -133,7 +133,7 @@ export function CategoryManage() {
       </div>
 
       <section className="insight-section">
-        <h3 className="insight-title">{CATEGORY_LABEL[main]} · 子分类</h3>
+        <h3 className="insight-title">{CATEGORY_LABEL[main]} 子分类</h3>
         {display.length === 0 ? (
           <p className="insight-hint">还没有子分类，在下方添加（例如：开衫、短袖）</p>
         ) : (

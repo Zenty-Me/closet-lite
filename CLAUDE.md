@@ -75,8 +75,8 @@ Settings（季节模式等）在 **localStorage** `qing-yichu-settings`；衣橱
 
 - Canvas `#F2F2F2` · surface `#FFFFFF` · ink `#1A1A1A` · muted `#8E8E93` · line `#E5E5EA`  
 - Accent **system blue** `#3478F6` · soft `#E8F0FE` · success `#34C759`  
-- Type: Noto Sans SC / PingFang only（无衬线标题）  
-- 照片优先；圆角 ~12；白底导航 + 蓝色选中；圆形蓝 FAB  
+- Type: Noto Sans SC / PingFang only  
+- 照片优先；**调色盘锁定**，优化密度/字重/描边；无阴影卡片堆；FAB 无光晕；chip 描边/浅底  
 
 
 ## Run / deploy

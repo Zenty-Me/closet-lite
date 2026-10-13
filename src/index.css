@@ -1,5 +1,5 @@
-/* 轻衣橱 — White Minimal Closet
-   Clean light gray canvas + white cards + system blue. Photos first. */
+/* 轻衣橱 — White Minimal Closet (craft: density / type / chrome)
+   Palette locked. Photos first. Quiet hairlines, no SaaS card kit. */
 
 :root {
   --bg: #f2f2f2;
@@ -14,9 +14,10 @@
   --success-soft: #e8f8ee;
   --danger: #ff3b30;
   --danger-soft: #ffebe9;
-  --radius: 12px;
-  --radius-lg: 16px;
-  --nav-h: 56px;
+  --radius: 6px;
+  --radius-lg: 10px;
+  --radius-card: 10px;
+  --nav-h: 52px;
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-t: env(safe-area-inset-top, 0px);
   --font-ui: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC',
@@ -29,7 +30,7 @@
   --text: var(--ink);
   --text-secondary: var(--muted);
   --border: var(--line);
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow: none;
 }
 
 *,
@@ -93,7 +94,7 @@ img {
 
 .app-main {
   flex: 1;
-  padding: calc(16px + var(--safe-t)) 16px calc(var(--nav-h) + var(--safe-b) + 20px);
+  padding: calc(12px + var(--safe-t)) 12px calc(var(--nav-h) + var(--safe-b) + 16px);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -104,18 +105,18 @@ img {
 
 .page-title {
   font-family: var(--font-ui);
-  font-size: 1.375rem;
+  font-size: 1.25rem;
   font-weight: 600;
-  letter-spacing: 0;
-  line-height: 1.35;
-  margin-bottom: 4px;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  margin-bottom: 2px;
   color: var(--ink);
 }
 
 .page-sub {
   font-size: 0.8125rem;
   color: var(--muted);
-  margin-bottom: 18px;
+  margin-bottom: 12px;
   font-weight: 400;
 }
 
@@ -144,9 +145,9 @@ img {
   gap: 2px;
   min-height: 44px;
   color: var(--muted);
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   font-weight: 500;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
 }
 
 .nav-item.active {
@@ -220,10 +221,10 @@ img {
 
 .fab {
   position: fixed;
-  right: max(16px, calc(50% - 240px + 16px));
-  bottom: calc(var(--nav-h) + var(--safe-b) + 14px);
-  width: 56px;
-  height: 56px;
+  right: max(12px, calc(50% - 240px + 12px));
+  bottom: calc(var(--nav-h) + var(--safe-b) + 12px);
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: var(--accent);
   color: #ffffff;
@@ -231,10 +232,10 @@ img {
   align-items: center;
   justify-content: center;
   z-index: 90;
-  font-size: 1.75rem;
+  font-size: 1.625rem;
   line-height: 1;
   font-weight: 300;
-  box-shadow: 0 4px 12px rgba(52, 120, 246, 0.35);
+  box-shadow: none;
 }
 
 .fab:active {
@@ -245,12 +246,12 @@ img {
 .item-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  gap: 8px;
 }
 
 .item-card {
   background: var(--surface);
-  border-radius: var(--radius);
+  border-radius: var(--radius-card);
   overflow: hidden;
   border: 1px solid var(--line);
   text-align: left;
@@ -265,13 +266,13 @@ img {
 .item-card-img,
 .item-card-img-wrap .item-card-img {
   aspect-ratio: 3 / 4;
-  background: #ebe4d8;
-  object-fit: cover;
+  background: var(--paper);
+  object-fit: contain;
   width: 100%;
 }
 
 .item-card-body {
-  padding: 8px 10px 10px;
+  padding: 6px 8px 8px;
 }
 
 .item-card-name {
@@ -285,15 +286,15 @@ img {
 .item-card-meta {
   font-size: 0.6875rem;
   color: var(--muted);
-  margin-top: 2px;
-  letter-spacing: 0.01em;
+  margin-top: 1px;
+  letter-spacing: 0;
 }
 
 .wear-pill {
   position: absolute;
   left: 6px;
   bottom: 6px;
-  background: rgba(28, 25, 22, 0.7);
+  background: rgba(26, 26, 26, 0.7);
   color: #ffffff;
   font-size: 0.625rem;
   font-weight: 500;
@@ -307,7 +308,7 @@ img {
   gap: 6px;
   overflow-x: auto;
   padding-bottom: 2px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
@@ -318,20 +319,20 @@ img {
 
 .chip {
   flex-shrink: 0;
-  min-height: 36px;
-  padding: 0 12px;
-  border-radius: var(--radius);
-  font-size: 0.8125rem;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
   font-weight: 400;
-  background: transparent;
-  color: var(--muted);
+  background: var(--surface);
+  color: var(--ink);
   border: 1px solid var(--line);
 }
 
 .chip.active {
-  background: var(--accent);
-  color: #ffffff;
-  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent-soft);
   font-weight: 500;
 }
 
@@ -344,14 +345,13 @@ img {
 /* —— Empty —— */
 .empty {
   text-align: center;
-  padding: 40px 20px;
+  padding: 28px 12px;
 }
 
 .empty-icon {
-  font-size: 2rem;
-  margin-bottom: 12px;
-  opacity: 0.55;
-  filter: grayscale(0.3);
+  font-size: 1.75rem;
+  margin-bottom: 8px;
+  opacity: 0.4;
 }
 
 .empty h3 {
@@ -378,8 +378,8 @@ img {
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--muted);
-  margin-bottom: 6px;
-  letter-spacing: 0.02em;
+  margin-bottom: 4px;
+  letter-spacing: 0;
 }
 
 .form-input,
@@ -457,12 +457,12 @@ img {
 
 .outfit-card {
   background: var(--surface);
-  border-radius: var(--radius);
+  border-radius: var(--radius-card);
   border: 1px solid var(--line);
-  padding: 14px;
+  padding: 10px;
   text-align: left;
   width: 100%;
-  box-shadow: var(--shadow);
+  box-shadow: none;
 }
 
 .outfit-card-title {
@@ -712,7 +712,7 @@ img {
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(28, 25, 22, 0.38);
+  background: rgba(26, 26, 26, 0.38);
   z-index: 200;
   display: flex;
   align-items: flex-end;
@@ -1265,7 +1265,7 @@ img {
   height: 24px;
   border-radius: 50%;
   border: 2px solid #ffffff;
-  background: rgba(28, 25, 22, 0.25);
+  background: rgba(26, 26, 26, 0.35);
   color: #ffffff;
   font-size: 0.75rem;
   font-weight: 700;
@@ -1377,10 +1377,10 @@ img {
   flex-direction: column;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   overflow: hidden;
-  margin: -4px 0 12px;
-  box-shadow: 0 8px 24px rgba(28, 25, 22, 0.08);
+  margin: -4px 0 10px;
+  box-shadow: none;
 }
 .more-menu button {
   border: none;
@@ -1405,9 +1405,9 @@ img {
 .category-card {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 12px 12px 14px;
-  margin-bottom: 12px;
+  border-radius: var(--radius-card);
+  padding: 10px 10px 12px;
+  margin-bottom: 8px;
 }
 .category-card-head {
   display: flex;
@@ -1541,7 +1541,7 @@ img {
   left: 10px;
   bottom: 10px;
   border: none;
-  background: rgba(28, 25, 22, 0.55);
+  background: rgba(26, 26, 26, 0.55);
   color: #ffffff;
   font-size: 0.75rem;
   padding: 6px 12px;
@@ -1560,7 +1560,7 @@ img {
   background: var(--surface);
   color: var(--accent);
   font-size: 1rem;
-  box-shadow: 0 2px 8px rgba(28, 25, 22, 0.12);
+  box-shadow: none;
   cursor: pointer;
 }
 .attr-list {
@@ -1718,7 +1718,7 @@ img {
   height: 24px;
   border-radius: 50%;
   border: none;
-  background: rgba(28, 25, 22, 0.65);
+  background: rgba(26, 26, 26, 0.65);
   color: #fff;
   font-size: 0.75rem;
   cursor: pointer;
@@ -1853,7 +1853,7 @@ img {
   border: 1px solid var(--line);
   cursor: pointer;
   padding: 0;
-  box-shadow: inset 0 0 0 1px rgba(28, 25, 22, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(26, 26, 26, 0.06);
 }
 .swatch-btn.active {
   outline: 2px solid var(--accent);
@@ -1957,7 +1957,7 @@ img {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   overflow: hidden;
-  box-shadow: var(--shadow);
+  box-shadow: none;
 }
 .wish-card.bought {
   opacity: 0.72;
@@ -2022,7 +2022,7 @@ img {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 10px 12px;
-  box-shadow: var(--shadow);
+  box-shadow: none;
 }
 .laundry-row-main {
   flex: 1;
@@ -2066,16 +2066,17 @@ img {
 }
 .empty {
   text-align: center;
-  padding: 48px 20px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
+  padding: 32px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 .empty-icon {
-  font-size: 2.5rem;
-  margin-bottom: 12px;
+  font-size: 1.75rem;
+  margin-bottom: 8px;
   line-height: 1;
+  opacity: 0.45;
 }
 .empty h3 {
   font-size: 1.0625rem;
@@ -2103,7 +2104,7 @@ img {
   color: var(--ink);
   font-size: 0.9375rem;
   font-weight: 600;
-  box-shadow: var(--shadow);
+  box-shadow: none;
   text-align: left;
 }
 .value-chip-sub {
@@ -2197,7 +2198,7 @@ img {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  box-shadow: none;
 }
 .roi-row {
   display: flex;
@@ -2224,4 +2225,143 @@ img {
   color: #8a6d1d;
   font-size: 0.8125rem;
   line-height: 1.4;
+}
+
+
+/* —— Craft pass: anti-SaaS density (palette locked) —— */
+.stat-grid {
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.stat-card {
+  padding: 10px 4px;
+  border-radius: var(--radius-card);
+  box-shadow: none;
+}
+.stat-num {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.stat-label {
+  font-size: 0.6875rem;
+  letter-spacing: 0;
+}
+.insight-section {
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border-radius: var(--radius-card);
+  box-shadow: none;
+}
+.insight-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  letter-spacing: 0;
+}
+.insight-hint {
+  font-size: 0.75rem;
+  margin-bottom: 8px;
+}
+.value-chip {
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-radius: var(--radius-card);
+  font-size: 0.8125rem;
+  box-shadow: none;
+}
+.value-hero {
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 2px 0 4px;
+}
+.value-cat-list {
+  border-radius: var(--radius-card);
+  box-shadow: none;
+}
+.value-cat-row {
+  padding: 10px 12px;
+  min-height: 44px;
+}
+.roi-card {
+  padding: 10px 12px;
+  margin: 6px 0 10px;
+  border-radius: var(--radius-card);
+  box-shadow: none;
+}
+.wish-card,
+.laundry-row {
+  border-radius: var(--radius-card);
+  box-shadow: none;
+}
+.wish-card-main {
+  padding: 10px;
+}
+.group-thumb {
+  width: 80px;
+  height: 100px;
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow: none;
+}
+.detail-hero {
+  border-radius: var(--radius-card);
+  box-shadow: none;
+}
+.attr-list {
+  border-radius: var(--radius-card);
+  box-shadow: none;
+}
+.attr-row {
+  min-height: 48px;
+  padding: 8px 12px;
+}
+.btn {
+  border-radius: var(--radius);
+}
+.form-input,
+.form-select,
+.form-textarea {
+  border-radius: var(--radius);
+}
+.menu-list {
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+.menu-item {
+  min-height: 48px;
+  padding: 12px 14px;
+}
+.season-banner {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-radius: var(--radius-card);
+}
+.filter-banner {
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  border-radius: var(--radius-card);
+}
+.suggest-card {
+  padding: 10px;
+  border-radius: var(--radius-card);
+  box-shadow: none;
+}
+.sheet {
+  border-radius: 12px 12px 0 0;
+}
+.chip-sm {
+  min-height: 28px;
+  padding: 0 8px;
+  font-size: 0.6875rem;
+}
+.wardrobe-title {
+  letter-spacing: -0.02em;
+}
+.price-pill,
+.laundry-pill,
+.wear-pill {
+  border-radius: 4px;
+  font-weight: 500;
 }

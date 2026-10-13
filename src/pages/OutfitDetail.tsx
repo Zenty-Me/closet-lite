@@ -73,9 +73,9 @@ export function OutfitDetail() {
       </button>
       <h1 className="page-title">{outfit.name || '未命名搭配'}</h1>
       <p className="page-sub">
-        {outfit.occasion ? `场合：${outfit.occasion} · ` : ''}
+        {outfit.occasion ? `场合 ${outfit.occasion}，` : ''}
         共 {items.length} 件
-        {cost.priced > 0 ? ` · 搭配成本 ${formatYuan(cost.sum)}（${cost.priced} 件有价）` : ''}
+        {cost.priced > 0 ? `，搭配成本 ${formatYuan(cost.sum)}` : ''}
       </p>
 
       {coverUrl && (

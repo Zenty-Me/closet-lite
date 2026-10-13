@@ -41,9 +41,9 @@ export function Inspire() {
     <div className="page-with-fab">
       <h1 className="page-title">灵感</h1>
       <p className="page-sub">
-        收藏穿搭灵感图 ·{' '}
-        <button type="button" className="btn-text" style={{ minHeight: 'auto', padding: 0 }} onClick={() => navigate('/wishlist')}>
-          想买清单 →
+        收藏穿搭灵感
+        <button type="button" className="btn-text" style={{ minHeight: 'auto', padding: '0 0 0 8px' }} onClick={() => navigate('/wishlist')}>
+          想买
         </button>
       </p>
 
