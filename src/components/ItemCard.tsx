@@ -1,5 +1,6 @@
 import type { ClothingItem } from '../types'
 import { colorLabel } from '../types'
+import { formatYuan } from '../utils/valueStats'
 import { useBlobUrl } from '../hooks/useBlobUrl'
 
 interface Props {
@@ -30,6 +31,9 @@ export function ItemCard({ item, onClick, wearCount, selectMode, selected }: Pro
           <span className="wear-pill">穿 {wearCount}</span>
         )}
         {item.needsWash && !selectMode && <span className="laundry-pill">待洗</span>}
+        {item.price != null && !selectMode && (
+          <span className="price-pill">{formatYuan(item.price)}</span>
+        )}
         {selectMode && (
           <span className={`select-check${selected ? ' on' : ''}`} aria-hidden>
             {selected ? '✓' : ''}
@@ -38,7 +42,10 @@ export function ItemCard({ item, onClick, wearCount, selectMode, selected }: Pro
       </div>
       <div className="item-card-body">
         <div className="item-card-name">{item.name || item.category}</div>
-        <div className="item-card-meta">{subtitle}</div>
+        <div className="item-card-meta">
+          {subtitle}
+          {item.price != null ? ` · ${formatYuan(item.price)}` : ''}
+        </div>
       </div>
     </button>
   )

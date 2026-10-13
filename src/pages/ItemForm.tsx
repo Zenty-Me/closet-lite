@@ -37,6 +37,7 @@ export function ItemForm() {
   const [location, setLocation] = useState('')
   const [tagsText, setTagsText] = useState('')
   const [purchaseDate, setPurchaseDate] = useState('')
+  const [purchaseLink, setPurchaseLink] = useState('')
   const [tempMin, setTempMin] = useState('')
   const [tempMax, setTempMax] = useState('')
   const [status, setStatus] = useState<'使用中' | '闲置' | '收纳中' | '已淘汰'>('使用中')
@@ -74,6 +75,7 @@ export function ItemForm() {
       setLocation(item.location)
       setTagsText(item.tags.join(' '))
       setPurchaseDate(item.purchaseDate)
+      setPurchaseLink(item.purchaseLink ?? '')
       setTempMin(item.tempMin != null ? String(item.tempMin) : '')
       setTempMax(item.tempMax != null ? String(item.tempMax) : '')
       setStatus(item.status)
@@ -126,6 +128,7 @@ export function ItemForm() {
       location: location.trim(),
       tags: parseTags(tagsText),
       purchaseDate: purchaseDate,
+      purchaseLink: purchaseLink.trim(),
       imageBlob,
       originalBlob: originalBlob ?? undefined,
       extraImages: existing?.extraImages ?? [],
@@ -256,16 +259,19 @@ export function ItemForm() {
       <div className="form-row-2">
         <div className="form-group">
           <label className="form-label" htmlFor="price">
-            价格
+            价格（¥）
           </label>
-          <input
-            id="price"
-            className="form-input"
-            inputMode="decimal"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            placeholder="可选"
-          />
+          <div className="price-input-wrap">
+            <span className="price-prefix">¥</span>
+            <input
+              id="price"
+              className="form-input price-input"
+              inputMode="decimal"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="0"
+            />
+          </div>
         </div>
         <div className="form-group">
           <label className="form-label" htmlFor="size">
@@ -304,6 +310,20 @@ export function ItemForm() {
           value={tagsText}
           onChange={(e) => setTagsText(e.target.value)}
           placeholder="通勤 基础款"
+        />
+      </div>
+
+      <div className="form-group">
+        <label className="form-label" htmlFor="purchaseLink">
+          购买链接
+        </label>
+        <input
+          id="purchaseLink"
+          className="form-input"
+          value={purchaseLink}
+          onChange={(e) => setPurchaseLink(e.target.value)}
+          placeholder="淘宝 / 拼多多商品链接"
+          inputMode="url"
         />
       </div>
 

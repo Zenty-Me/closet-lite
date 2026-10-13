@@ -2087,3 +2087,105 @@ img {
   color: var(--muted);
   margin-bottom: 16px;
 }
+
+/* —— 估值 / 购物 / 价格 —— */
+.value-chip {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  text-align: left;
+}
+.value-chip-sub {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+.value-hero {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+  margin: 4px 0 6px;
+}
+.value-cat-list {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+}
+.value-cat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  text-align: left;
+  font-size: 0.875rem;
+  color: var(--ink);
+}
+.value-cat-row:last-child {
+  border-bottom: none;
+}
+.value-cat-row:active {
+  background: var(--accent-soft);
+}
+.value-cat-meta {
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+.shop-actions {
+  margin: 12px 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.shop-actions-row {
+  display: flex;
+  gap: 8px;
+}
+.price-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0 12px;
+}
+.price-prefix {
+  color: var(--muted);
+  font-weight: 600;
+}
+.price-input-wrap .price-input {
+  border: none;
+  background: transparent;
+  padding-left: 0;
+  flex: 1;
+}
+.price-pill {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  background: rgba(26, 26, 26, 0.72);
+  color: #fff;
+  font-size: 0.625rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 999px;
+}

@@ -24,6 +24,8 @@ import { useBlobUrl } from '../hooks/useBlobUrl'
 import { ImageEditor } from '../components/ImageEditor'
 import { ImagePicker } from '../components/ImagePicker'
 import { Toast } from '../components/Toast'
+import { openPurchaseLink, openTaobao, openPinduoduo } from '../utils/shop'
+import { formatYuan } from '../utils/valueStats'
 import { SubcategoryPicker } from '../components/SubcategoryPicker'
 import { ColorPicker } from '../components/ColorPicker'
 import { addSubcategoryLabel, loadSettings, saveSettings } from '../utils/settings'
@@ -198,6 +200,44 @@ export function ItemDetail() {
           muted={!item.needsWash}
           onClick={() => void patch({ needsWash: !item.needsWash })}
         />
+        <AttrRow
+          label="价格"
+          value={item.price != null ? formatYuan(item.price) : '未设置'}
+          muted={item.price == null}
+          onClick={() => setFieldEdit('price')}
+        />
+        <AttrRow
+          label="购买链接"
+          value={item.purchaseLink ? '已设置' : '未设置'}
+          muted={!item.purchaseLink}
+          onClick={() => setFieldEdit('purchaseLink')}
+        />
+      </div>
+
+      <div className="shop-actions">
+        {item.purchaseLink ? (
+          <button type="button" className="btn btn-primary btn-block" onClick={() => openPurchaseLink(item.purchaseLink)}>
+            打开购买链接
+          </button>
+        ) : null}
+        <div className="shop-actions-row">
+          <button
+            type="button"
+            className="btn btn-secondary"
+            style={{ flex: 1 }}
+            onClick={() => openTaobao(item.name || item.brand || CATEGORY_LABEL[item.category])}
+          >
+            打开淘宝
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            style={{ flex: 1 }}
+            onClick={() => openPinduoduo(item.name || item.brand || CATEGORY_LABEL[item.category])}
+          >
+            打开拼多多
+          </button>
+        </div>
       </div>
 
       <div className="detail-action-bar">
@@ -369,6 +409,8 @@ function FieldSheet({
     temp: '适合温度',
     location: '收纳位置',
     status: '状态',
+    price: '价格',
+    purchaseLink: '购买链接',
   }
 
   return (
@@ -444,6 +486,57 @@ function FieldSheet({
               </button>
             ))}
           </div>
+        )}
+        {field === 'price' && (
+          <>
+            <div className="price-input-wrap">
+              <span className="price-prefix">¥</span>
+              <input
+                className="form-input price-input"
+                inputMode="decimal"
+                defaultValue={item.price != null ? String(item.price) : ''}
+                id="edit-price"
+                autoFocus
+              />
+            </div>
+            <button
+              type="button"
+              className="btn btn-primary btn-block"
+              style={{ marginTop: 12 }}
+              onClick={() => {
+                const v = (document.getElementById('edit-price') as HTMLInputElement)?.value.trim() ?? ''
+                if (v === '') onSave({ price: null })
+                else {
+                  const n = Number(v)
+                  onSave({ price: Number.isNaN(n) ? null : n })
+                }
+              }}
+            >
+              保存
+            </button>
+          </>
+        )}
+        {field === 'purchaseLink' && (
+          <>
+            <input
+              className="form-input"
+              defaultValue={item.purchaseLink}
+              id="edit-plink"
+              placeholder="https://"
+              autoFocus
+            />
+            <button
+              type="button"
+              className="btn btn-primary btn-block"
+              style={{ marginTop: 12 }}
+              onClick={() => {
+                const v = (document.getElementById('edit-plink') as HTMLInputElement)?.value.trim() ?? ''
+                onSave({ purchaseLink: v })
+              }}
+            >
+              保存
+            </button>
+          </>
         )}
         {field === 'temp' && (
           <>

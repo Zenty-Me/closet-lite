@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getAllItems, getAllWearLogs, getItem, saveItem, softDeleteItem, uid } from '../db'
 import type { Category, ClothingItem, Season } from '../types'
 import {
@@ -18,6 +18,7 @@ import { loadSettings, saveSettings, mergeSubcategoryOptions } from '../utils/se
 import { filterAndSortItems, type SortKey } from '../utils/wardrobeQuery'
 import { compressImage } from '../utils/image'
 import { Toast } from '../components/Toast'
+import { formatYuan, summarizeWardrobeValue } from '../utils/valueStats'
 import { useBlobUrl } from '../hooks/useBlobUrl'
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
@@ -25,6 +26,8 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: 'updated', label: '最近更新' },
   { key: 'wear', label: '穿着次数' },
   { key: 'name', label: '名称' },
+  { key: 'priceDesc', label: '价格高→低' },
+  { key: 'priceAsc', label: '价格低→高' },
 ]
 
 const BATCH_CAP = 30
@@ -53,6 +56,7 @@ function GroupThumb({ item, onClick }: { item: ClothingItem; onClick: () => void
 
 export function Wardrobe() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [items, setItems] = useState<ClothingItem[]>([])
   const [wearMap, setWearMap] = useState<Map<string, number>>(() => new Map())
   const [search, setSearch] = useState('')
@@ -91,6 +95,18 @@ export function Wardrobe() {
     void load()
   }, [load])
 
+  useEffect(() => {
+    const cat = searchParams.get('category')
+    if (cat && (CATEGORIES as readonly string[]).includes(cat)) {
+      setCategory(cat as Category)
+      setViewMode('grid')
+      const next = new URLSearchParams(searchParams)
+      next.delete('category')
+      setSearchParams(next, { replace: true })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
+
   const setViewMode = (m: ViewMode) => {
     setView(m)
     localStorage.setItem(VIEW_KEY, m)
@@ -112,7 +128,12 @@ export function Wardrobe() {
     [items, search, category, color, season, sort, settings, wearMap, laundryOnly],
   )
 
-  const sections = useMemo(() => {
+  const valueSummary = useMemo(
+    () => summarizeWardrobeValue(items, { includeRetired: settings.includeRetiredInValue }),
+    [items, settings.includeRetiredInValue],
+  )
+
+    const sections = useMemo(() => {
     const byCat = new Map<Category, ClothingItem[]>()
     for (const c of CATEGORIES) byCat.set(c, [])
     for (const it of filtered) {
@@ -176,6 +197,7 @@ export function Wardrobe() {
           location: '',
           tags: [],
           purchaseDate: '',
+          purchaseLink: '',
           imageBlob,
           originalBlob: imageBlob,
           extraImages: [],
@@ -265,6 +287,13 @@ export function Wardrobe() {
           </button>
         </div>
       </header>
+
+      {items.length > 0 && (
+        <button type="button" className="value-chip" onClick={() => navigate('/me')}>
+          衣橱估值 {formatYuan(valueSummary.totalValue)}
+          <span className="value-chip-sub">{valueSummary.pricedCount}/{valueSummary.itemCount} 件有价</span>
+        </button>
+      )}
 
       {showMoreMenu && (
         <div className="more-menu">

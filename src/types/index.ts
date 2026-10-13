@@ -105,6 +105,8 @@ export interface ClothingItem {
   location: string
   tags: string[]
   purchaseDate: string
+  /** 购买链接（淘宝/拼多多等） */
+  purchaseLink: string
   imageBlob: Blob
   originalBlob?: Blob
   /** Additional gallery images */
@@ -294,6 +296,7 @@ export function normalizeItem(
     location: raw.location ?? '',
     tags: Array.isArray(raw.tags) ? raw.tags : [],
     purchaseDate: raw.purchaseDate ?? '',
+    purchaseLink: typeof raw.purchaseLink === 'string' ? raw.purchaseLink.trim() : '',
     imageBlob: raw.imageBlob,
     originalBlob: raw.originalBlob,
     extraImages: Array.isArray(raw.extraImages) ? raw.extraImages : [],
