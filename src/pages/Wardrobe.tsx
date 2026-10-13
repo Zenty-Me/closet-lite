@@ -439,7 +439,7 @@ export function Wardrobe() {
                     : active === '__none__'
                       ? list.filter((i) => !i.subcategory)
                       : list.filter((i) => i.subcategory === active)
-                const hasAnySub = list.some((i) => i.subcategory) || chips.length > 0
+                const hasAnySub = list.some((i) => Boolean(i.subcategory))
                 return (
                   <>
                     {hasAnySub && list.length > 0 && (

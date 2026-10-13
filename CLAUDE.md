@@ -6,7 +6,7 @@
 
 - **Name:** 轻衣橱  
 - **Tagline:** 本地电子衣橱，数据只存在你的手机里  
-- **Inspiration:** 无忧衣橱类 digital closet，**不要**抄商标/品牌蓝；保持 linen/olive  
+- **Inspiration:** 无忧衣橱类 digital closet，**不要**抄商标；视觉为 **white minimal + system blue**（见 DESIGN.md）  
 - **Audience:** 手机浏览器 / 可安装 PWA  
 - **Privacy:** 完全本地优先；无账号、无后端、无云同步  
 
@@ -68,12 +68,13 @@ Settings（季节模式等）在 **localStorage** `qing-yichu-settings`；衣橱
 
 ## Design system（必守）
 
-详见 `DESIGN.md`。**禁止**抄参考 App 的品牌蓝；**禁止**紫色 AI SaaS 风。
+详见 `DESIGN.md`。**禁止**紫色 AI SaaS；**禁止**退回 linen/olive 纸感。
 
-- Paper `#F3EFE7` · surface `#FFFBF5` · ink `#1C1916` · muted `#6E675E` · line `#DDD5C8`  
-- Accent **deep olive** `#3D4A2E` · soft `#E4E8DB`  
-- Titles: Noto Serif SC；UI: Noto Sans SC / PingFang  
-- 照片优先；少装饰；`prefers-reduced-motion`；safe-area  
+- Canvas `#F2F2F2` · surface `#FFFFFF` · ink `#1A1A1A` · muted `#8E8E93` · line `#E5E5EA`  
+- Accent **system blue** `#3478F6` · soft `#E8F0FE` · success `#34C759`  
+- Type: Noto Sans SC / PingFang only（无衬线标题）  
+- 照片优先；圆角 ~12；白底导航 + 蓝色选中；圆形蓝 FAB  
+
 
 ## Run / deploy
 

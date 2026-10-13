@@ -103,7 +103,7 @@ export async function buildCollage(blobs: Blob[], width = 800): Promise<Blob> {
   canvas.width = width
   canvas.height = totalH
   const ctx = canvas.getContext('2d')!
-  ctx.fillStyle = '#F3EFE7'
+  ctx.fillStyle = '#F5F5F5'
   ctx.fillRect(0, 0, width, totalH)
   let y = pad
   const innerW = width - pad * 2
