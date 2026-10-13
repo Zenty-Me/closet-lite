@@ -1,6 +1,7 @@
 export const CATEGORIES = [
   '上衣',
   '裤子',
+  '连衣裙',
   '裙子',
   '外套',
   '鞋子',
@@ -10,6 +11,22 @@ export const CATEGORIES = [
 ] as const
 
 export type Category = (typeof CATEGORIES)[number]
+
+/** Display labels closer to 无忧衣橱 grouping (storage keys stay CATEGORIES) */
+export const CATEGORY_LABEL: Record<Category, string> = {
+  上衣: '上装',
+  裤子: '下装',
+  连衣裙: '连衣裙',
+  裙子: '半身裙',
+  外套: '外套',
+  鞋子: '鞋子',
+  包: '包',
+  配饰: '配饰',
+  其他: '其他',
+}
+
+/** Core sections always shown on 分组 view */
+export const CORE_CATEGORIES: Category[] = ['上衣', '裤子', '连衣裙', '外套']
 
 export const SEASONS = ['春', '夏', '秋', '冬', '四季'] as const
 export type Season = (typeof SEASONS)[number]
@@ -36,6 +53,26 @@ export const COLORS = [
 
 export type ColorName = (typeof COLORS)[number]
 
+export const COLOR_HEX: Record<ColorName, string> = {
+  黑: '#1c1916',
+  白: '#f5f2eb',
+  灰: '#8a8580',
+  米: '#d4c4a8',
+  棕: '#6b4a2e',
+  红: '#a63d3d',
+  橙: '#c4783a',
+  黄: '#c9a227',
+  绿: '#3d4a2e',
+  蓝: '#3a4f6f',
+  紫: '#5c4a6e',
+  粉: '#c48a9a',
+  多色: '#6e675e',
+  其他: '#bbb5a8',
+}
+
+export const ITEM_STATUSES = ['使用中', '闲置', '收纳中', '已淘汰'] as const
+export type ItemStatus = (typeof ITEM_STATUSES)[number]
+
 export interface ClothingItem {
   id: string
   name: string
@@ -50,8 +87,12 @@ export interface ClothingItem {
   tags: string[]
   purchaseDate: string
   imageBlob: Blob
-  /** Pre-cutout / pre-edit original for undo */
   originalBlob?: Blob
+  /** Additional gallery images */
+  extraImages: Blob[]
+  tempMin: number | null
+  tempMax: number | null
+  status: ItemStatus
   createdAt: number
   updatedAt: number
   deletedAt?: number | null
@@ -62,7 +103,6 @@ export interface Outfit {
   name: string
   occasion: string
   itemIds: string[]
-  /** Collage lookboard cover */
   coverBlob?: Blob
   createdAt: number
   updatedAt: number
@@ -91,13 +131,14 @@ export interface Inspiration {
   deletedAt?: number | null
 }
 
-export type BackupItemV3 = Omit<ClothingItem, 'imageBlob' | 'originalBlob'> & {
+export type BackupItemV4 = Omit<ClothingItem, 'imageBlob' | 'originalBlob' | 'extraImages'> & {
   imageBase64: string
   originalBase64?: string
+  extraImagesBase64?: string[]
 }
-export type BackupWearLogV3 = Omit<WearLog, 'photoBlob'> & { photoBase64?: string }
-export type BackupInspirationV3 = Omit<Inspiration, 'imageBlob'> & { imageBase64: string }
-export type BackupOutfitV3 = Omit<Outfit, 'coverBlob'> & { coverBase64?: string }
+export type BackupWearLogV4 = Omit<WearLog, 'photoBlob'> & { photoBase64?: string }
+export type BackupInspirationV4 = Omit<Inspiration, 'imageBlob'> & { imageBase64: string }
+export type BackupOutfitV4 = Omit<Outfit, 'coverBlob'> & { coverBase64?: string }
 
 export interface BackupDataV1 {
   version: 1
@@ -126,31 +167,50 @@ export interface BackupDataV1 {
 export interface BackupDataV2 {
   version: 2
   exportedAt: string
-  items: Array<Omit<ClothingItem, 'imageBlob' | 'originalBlob'> & { imageBase64: string }>
+  items: Array<Omit<ClothingItem, 'imageBlob' | 'originalBlob' | 'extraImages' | 'tempMin' | 'tempMax' | 'status'> & {
+    imageBase64: string
+  }>
   outfits: Outfit[]
-  wearLogs: BackupWearLogV3[]
-  inspirations: BackupInspirationV3[]
+  wearLogs: BackupWearLogV4[]
+  inspirations: BackupInspirationV4[]
 }
 
 export interface BackupDataV3 {
   version: 3
   exportedAt: string
-  items: BackupItemV3[]
-  outfits: BackupOutfitV3[]
-  wearLogs: BackupWearLogV3[]
-  inspirations: BackupInspirationV3[]
+  items: Array<Omit<ClothingItem, 'imageBlob' | 'originalBlob' | 'extraImages' | 'tempMin' | 'tempMax' | 'status'> & {
+    imageBase64: string
+    originalBase64?: string
+  }>
+  outfits: BackupOutfitV4[]
+  wearLogs: BackupWearLogV4[]
+  inspirations: BackupInspirationV4[]
 }
 
-export type BackupData = BackupDataV1 | BackupDataV2 | BackupDataV3
+export interface BackupDataV4 {
+  version: 4
+  exportedAt: string
+  items: BackupItemV4[]
+  outfits: BackupOutfitV4[]
+  wearLogs: BackupWearLogV4[]
+  inspirations: BackupInspirationV4[]
+}
+
+export type BackupData = BackupDataV1 | BackupDataV2 | BackupDataV3 | BackupDataV4
 
 export function normalizeItem(
   raw: Partial<ClothingItem> &
     Pick<ClothingItem, 'id' | 'imageBlob' | 'category' | 'color' | 'season' | 'createdAt' | 'updatedAt'>,
 ): ClothingItem {
+  // Migrate old "裙子" stays; unknown categories fall back carefully
+  let category = raw.category
+  if (!(CATEGORIES as readonly string[]).includes(category)) {
+    category = '其他'
+  }
   return {
     id: raw.id,
     name: raw.name ?? '',
-    category: raw.category,
+    category,
     color: raw.color,
     season: raw.season,
     notes: raw.notes ?? '',
@@ -162,6 +222,12 @@ export function normalizeItem(
     purchaseDate: raw.purchaseDate ?? '',
     imageBlob: raw.imageBlob,
     originalBlob: raw.originalBlob,
+    extraImages: Array.isArray(raw.extraImages) ? raw.extraImages : [],
+    tempMin: raw.tempMin ?? null,
+    tempMax: raw.tempMax ?? null,
+    status: (ITEM_STATUSES as readonly string[]).includes(raw.status as string)
+      ? (raw.status as ItemStatus)
+      : '使用中',
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
     deletedAt: raw.deletedAt ?? null,

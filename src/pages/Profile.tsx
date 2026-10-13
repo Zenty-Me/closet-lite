@@ -17,7 +17,7 @@ import {
   normalizeOutfit,
   normalizeWearLog,
   type BackupData,
-  type BackupDataV3,
+  type BackupDataV4,
   type ClothingItem,
   type Inspiration,
   type Outfit,
@@ -82,11 +82,14 @@ export function Profile() {
       ])
       const exportedItems = await Promise.all(
         items.map(async (it) => {
-          const { imageBlob, originalBlob, ...rest } = it
+          const { imageBlob, originalBlob, extraImages, ...rest } = it
           return {
             ...rest,
             imageBase64: await blobToBase64(imageBlob),
             originalBase64: originalBlob ? await blobToBase64(originalBlob) : undefined,
+            extraImagesBase64: extraImages?.length
+              ? await Promise.all(extraImages.map((b) => blobToBase64(b)))
+              : undefined,
           }
         }),
       )
@@ -114,8 +117,8 @@ export function Profile() {
           return { ...rest, imageBase64: await blobToBase64(imageBlob) }
         }),
       )
-      const data: BackupDataV3 = {
-        version: 3,
+      const data: BackupDataV4 = {
+        version: 4,
         exportedAt: new Date().toISOString(),
         items: exportedItems,
         outfits: exportedOutfits,
@@ -140,7 +143,7 @@ export function Profile() {
     setBusy(true)
     try {
       const data = JSON.parse(await file.text()) as BackupData
-      if (!data || ![1, 2, 3].includes(data.version) || !Array.isArray(data.items)) {
+      if (!data || ![1, 2, 3, 4].includes(data.version) || !Array.isArray(data.items)) {
         throw new Error('invalid')
       }
       if (
@@ -153,12 +156,19 @@ export function Profile() {
       }
       const items: ClothingItem[] = await Promise.all(
         data.items.map(async (it) => {
-          const raw = it as { imageBase64: string; originalBase64?: string } & ClothingItem
-          const { imageBase64, originalBase64, ...rest } = raw
+          const raw = it as {
+            imageBase64: string
+            originalBase64?: string
+            extraImagesBase64?: string[]
+          } & ClothingItem
+          const { imageBase64, originalBase64, extraImagesBase64, ...rest } = raw
           return normalizeItem({
             ...(rest as ClothingItem),
             imageBlob: await base64ToBlob(imageBase64),
             originalBlob: originalBase64 ? await base64ToBlob(originalBase64) : undefined,
+            extraImages: extraImagesBase64?.length
+              ? await Promise.all(extraImagesBase64.map((b) => base64ToBlob(b)))
+              : [],
             createdAt: (rest as ClothingItem).createdAt ?? Date.now(),
             updatedAt: (rest as ClothingItem).updatedAt ?? Date.now(),
             category: (rest as ClothingItem).category,
@@ -193,7 +203,7 @@ export function Profile() {
         }),
       )
       let inspirations: Inspiration[] = []
-      if ((data.version === 2 || data.version === 3) && 'inspirations' in data && Array.isArray(data.inspirations)) {
+      if ((data.version === 2 || data.version === 3 || data.version === 4) && 'inspirations' in data && Array.isArray(data.inspirations)) {
         inspirations = await Promise.all(
           data.inspirations.map(async (i) => {
             const { imageBase64, ...rest } = i
@@ -282,11 +292,11 @@ export function Profile() {
         </button>
         <button type="button" className="menu-item" disabled={busy} onClick={() => void exportBackup()}>
           <span>导出备份</span>
-          <span>JSON v3</span>
+          <span>JSON v4</span>
         </button>
         <button type="button" className="menu-item" disabled={busy} onClick={() => fileRef.current?.click()}>
           <span>导入备份</span>
-          <span>支持 v1–v3</span>
+          <span>支持 v1–v4</span>
         </button>
         <button type="button" className="menu-item" onClick={() => void clearData()}>
           <span style={{ color: 'var(--danger)' }}>清空全部数据</span>
@@ -323,7 +333,7 @@ export function Profile() {
       </div>
 
       <p style={{ textAlign: 'center', marginTop: 24, fontSize: '0.75rem', color: 'var(--muted)' }}>
-        轻衣橱 v1.4
+        轻衣橱 v1.5
       </p>
 
       {toast && <Toast message={toast} onClose={() => setToast('')} />}

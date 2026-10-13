@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   CATEGORIES,
+  CATEGORY_LABEL,
   COLORS,
   SEASONS,
   type Category,
@@ -17,8 +18,10 @@ import { Toast } from '../components/Toast'
 
 export function ItemForm() {
   const { id } = useParams()
+  const [searchParams] = useSearchParams()
   const isNew = !id || id === 'new'
   const navigate = useNavigate()
+  const presetCategory = searchParams.get('category')
 
   const [name, setName] = useState('')
   const [category, setCategory] = useState<Category>('上衣')
@@ -31,12 +34,21 @@ export function ItemForm() {
   const [location, setLocation] = useState('')
   const [tagsText, setTagsText] = useState('')
   const [purchaseDate, setPurchaseDate] = useState('')
+  const [tempMin, setTempMin] = useState('')
+  const [tempMax, setTempMax] = useState('')
+  const [status, setStatus] = useState<'使用中' | '闲置' | '收纳中' | '已淘汰'>('使用中')
   const [imageBlob, setImageBlob] = useState<Blob | null>(null)
   const [originalBlob, setOriginalBlob] = useState<Blob | null>(null)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState('')
   const [ready, setReady] = useState(isNew)
   const [wearCount, setWearCount] = useState(0)
+
+  useEffect(() => {
+    if (isNew && presetCategory && (CATEGORIES as readonly string[]).includes(presetCategory)) {
+      setCategory(presetCategory as Category)
+    }
+  }, [isNew, presetCategory])
 
   useEffect(() => {
     if (isNew) return
@@ -57,6 +69,9 @@ export function ItemForm() {
       setLocation(item.location)
       setTagsText(item.tags.join(' '))
       setPurchaseDate(item.purchaseDate)
+      setTempMin(item.tempMin != null ? String(item.tempMin) : '')
+      setTempMax(item.tempMax != null ? String(item.tempMax) : '')
+      setStatus(item.status)
       setImageBlob(item.imageBlob)
       setOriginalBlob(item.originalBlob ?? null)
       const logs = await getAllWearLogs()
@@ -90,8 +105,9 @@ export function ItemForm() {
     const now = Date.now()
     const existing = !isNew ? await getItem(id!) : undefined
     const priceNum = price.trim() === '' ? null : Number(price)
+    const savedId = existing?.id ?? uid()
     await saveItem({
-      id: existing?.id ?? uid(),
+      id: savedId,
       name: name.trim(),
       category,
       color,
@@ -105,12 +121,16 @@ export function ItemForm() {
       purchaseDate: purchaseDate,
       imageBlob,
       originalBlob: originalBlob ?? undefined,
+      extraImages: existing?.extraImages ?? [],
+      tempMin: tempMin.trim() === '' ? null : Number(tempMin),
+      tempMax: tempMax.trim() === '' ? null : Number(tempMax),
+      status,
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
       deletedAt: null,
     })
     setSaving(false)
-    navigate('/')
+    navigate(`/items/${savedId}`, { replace: true })
   }
 
   const onDelete = async () => {
@@ -167,7 +187,7 @@ export function ItemForm() {
               className={`chip${category === c ? ' active' : ''}`}
               onClick={() => setCategory(c)}
             >
-              {c}
+              {CATEGORY_LABEL[c]}
             </button>
           ))}
         </div>
@@ -283,6 +303,28 @@ export function ItemForm() {
           value={purchaseDate}
           onChange={(e) => setPurchaseDate(e.target.value)}
         />
+      </div>
+
+      <div className="form-row-2">
+        <div className="form-group">
+          <label className="form-label" htmlFor="tmin">适合温度最低 °C</label>
+          <input id="tmin" className="form-input" inputMode="numeric" value={tempMin} onChange={(e) => setTempMin(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label className="form-label" htmlFor="tmax">最高 °C</label>
+          <input id="tmax" className="form-input" inputMode="numeric" value={tempMax} onChange={(e) => setTempMax(e.target.value)} />
+        </div>
+      </div>
+
+      <div className="form-group">
+        <div className="form-label">状态</div>
+        <div className="chip-select">
+          {(['使用中', '闲置', '收纳中', '已淘汰'] as const).map((s) => (
+            <button key={s} type="button" className={`chip${status === s ? ' active' : ''}`} onClick={() => setStatus(s)}>
+              {s}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="form-group">
