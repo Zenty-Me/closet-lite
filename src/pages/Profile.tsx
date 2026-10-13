@@ -17,9 +17,10 @@ import {
   normalizeOutfit,
   normalizeWearLog,
   type BackupData,
-  type BackupDataV2,
+  type BackupDataV3,
   type ClothingItem,
   type Inspiration,
+  type Outfit,
   type SeasonFilter,
   type WearLog,
   SEASON_FILTERS,
@@ -81,8 +82,21 @@ export function Profile() {
       ])
       const exportedItems = await Promise.all(
         items.map(async (it) => {
-          const { imageBlob, ...rest } = it
-          return { ...rest, imageBase64: await blobToBase64(imageBlob) }
+          const { imageBlob, originalBlob, ...rest } = it
+          return {
+            ...rest,
+            imageBase64: await blobToBase64(imageBlob),
+            originalBase64: originalBlob ? await blobToBase64(originalBlob) : undefined,
+          }
+        }),
+      )
+      const exportedOutfits = await Promise.all(
+        outfits.map(async (o) => {
+          const { coverBlob, ...rest } = o
+          return {
+            ...rest,
+            coverBase64: coverBlob ? await blobToBase64(coverBlob) : undefined,
+          }
         }),
       )
       const exportedLogs = await Promise.all(
@@ -100,11 +114,11 @@ export function Profile() {
           return { ...rest, imageBase64: await blobToBase64(imageBlob) }
         }),
       )
-      const data: BackupDataV2 = {
-        version: 2,
+      const data: BackupDataV3 = {
+        version: 3,
         exportedAt: new Date().toISOString(),
         items: exportedItems,
-        outfits,
+        outfits: exportedOutfits,
         wearLogs: exportedLogs,
         inspirations: exportedInsp,
       }
@@ -126,7 +140,7 @@ export function Profile() {
     setBusy(true)
     try {
       const data = JSON.parse(await file.text()) as BackupData
-      if (!data || (data.version !== 1 && data.version !== 2) || !Array.isArray(data.items)) {
+      if (!data || ![1, 2, 3].includes(data.version) || !Array.isArray(data.items)) {
         throw new Error('invalid')
       }
       if (
@@ -139,10 +153,12 @@ export function Profile() {
       }
       const items: ClothingItem[] = await Promise.all(
         data.items.map(async (it) => {
-          const { imageBase64, ...rest } = it
+          const raw = it as { imageBase64: string; originalBase64?: string } & ClothingItem
+          const { imageBase64, originalBase64, ...rest } = raw
           return normalizeItem({
             ...(rest as ClothingItem),
             imageBlob: await base64ToBlob(imageBase64),
+            originalBlob: originalBase64 ? await base64ToBlob(originalBase64) : undefined,
             createdAt: (rest as ClothingItem).createdAt ?? Date.now(),
             updatedAt: (rest as ClothingItem).updatedAt ?? Date.now(),
             category: (rest as ClothingItem).category,
@@ -152,7 +168,16 @@ export function Profile() {
           })
         }),
       )
-      const outfits = (data.outfits ?? []).map(normalizeOutfit)
+      const outfits = await Promise.all(
+        (data.outfits ?? []).map(async (o) => {
+          const raw = o as Outfit & { coverBase64?: string }
+          const { coverBase64, ...rest } = raw
+          return normalizeOutfit({
+            ...rest,
+            coverBlob: coverBase64 ? await base64ToBlob(coverBase64) : rest.coverBlob,
+          })
+        }),
+      )
       const wearLogs: WearLog[] = await Promise.all(
         (data.wearLogs ?? []).map(async (l) => {
           const photoBase64 = 'photoBase64' in l ? l.photoBase64 : undefined
@@ -168,7 +193,7 @@ export function Profile() {
         }),
       )
       let inspirations: Inspiration[] = []
-      if (data.version === 2 && Array.isArray(data.inspirations)) {
+      if ((data.version === 2 || data.version === 3) && 'inspirations' in data && Array.isArray(data.inspirations)) {
         inspirations = await Promise.all(
           data.inspirations.map(async (i) => {
             const { imageBase64, ...rest } = i
@@ -257,11 +282,11 @@ export function Profile() {
         </button>
         <button type="button" className="menu-item" disabled={busy} onClick={() => void exportBackup()}>
           <span>导出备份</span>
-          <span>JSON v2</span>
+          <span>JSON v3</span>
         </button>
         <button type="button" className="menu-item" disabled={busy} onClick={() => fileRef.current?.click()}>
           <span>导入备份</span>
-          <span>支持 v1 / v2</span>
+          <span>支持 v1–v3</span>
         </button>
         <button type="button" className="menu-item" onClick={() => void clearData()}>
           <span style={{ color: 'var(--danger)' }}>清空全部数据</span>
@@ -298,7 +323,7 @@ export function Profile() {
       </div>
 
       <p style={{ textAlign: 'center', marginTop: 24, fontSize: '0.75rem', color: 'var(--muted)' }}>
-        轻衣橱 v1.3
+        轻衣橱 v1.4
       </p>
 
       {toast && <Toast message={toast} onClose={() => setToast('')} />}

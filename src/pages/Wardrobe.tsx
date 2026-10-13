@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getAllItems, getAllWearLogs } from '../db'
+import { getAllItems, getAllWearLogs, saveItem, uid } from '../db'
 import type { Category, ClothingItem, ColorName, Season } from '../types'
 import { CATEGORIES, COLORS, SEASONS } from '../types'
 import { ItemCard } from '../components/ItemCard'
@@ -12,6 +12,8 @@ import {
   filterAndSortItems,
   type SortKey,
 } from '../utils/wardrobeQuery'
+import { compressImage } from '../utils/image'
+import { Toast } from '../components/Toast'
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: 'created', label: '最近添加' },
@@ -32,6 +34,9 @@ export function Wardrobe() {
   const [showMoreFilters, setShowMoreFilters] = useState(false)
   const [settings, setSettings] = useState(() => loadSettings())
   const [loading, setLoading] = useState(true)
+  const [toast, setToast] = useState('')
+  const [batchBusy, setBatchBusy] = useState(false)
+  const batchRef = useRef<HTMLInputElement>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -62,6 +67,56 @@ export function Wardrobe() {
       }),
     [items, search, category, color, season, sort, settings, wearMap],
   )
+
+
+  const BATCH_CAP = 30
+
+  const onBatchImport = async (files: FileList | null) => {
+    if (!files || files.length === 0) return
+    const list = Array.from(files).filter((f) => f.type.startsWith('image/'))
+    if (list.length === 0) {
+      setToast('请选择图片文件')
+      return
+    }
+    if (list.length > BATCH_CAP) {
+      setToast(`一次最多导入 ${BATCH_CAP} 张，已选 ${list.length} 张`)
+      return
+    }
+    setBatchBusy(true)
+    let ok = 0
+    for (let i = 0; i < list.length; i++) {
+      setToast(`导入中 ${i + 1}/${list.length}…`)
+      try {
+        const imageBlob = await compressImage(list[i])
+        const now = Date.now()
+        await saveItem({
+          id: uid(),
+          name: '',
+          category: '其他',
+          color: '其他',
+          season: '四季',
+          notes: '',
+          brand: '',
+          price: null,
+          size: '',
+          location: '',
+          tags: [],
+          purchaseDate: '',
+          imageBlob,
+          originalBlob: imageBlob,
+          createdAt: now + i,
+          updatedAt: now + i,
+          deletedAt: null,
+        })
+        ok++
+      } catch {
+        /* skip failed */
+      }
+    }
+    setBatchBusy(false)
+    setToast(`已导入 ${ok} 件单品`)
+    await load()
+  }
 
   const toggleSeasonMode = () => {
     const next = { ...settings, seasonMode: !settings.seasonMode }
@@ -215,14 +270,37 @@ export function Wardrobe() {
         </div>
       )}
 
-      <button
-        type="button"
-        className="fab"
-        aria-label="添加单品"
-        onClick={() => navigate('/items/new')}
-      >
-        +
-      </button>
+      <input
+        ref={batchRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="sr-only"
+        onChange={(e) => {
+          void onBatchImport(e.target.files)
+          e.target.value = ''
+        }}
+      />
+      <div className="fab-cluster">
+        <button
+          type="button"
+          className="fab fab-secondary"
+          aria-label="批量导入"
+          disabled={batchBusy}
+          onClick={() => batchRef.current?.click()}
+        >
+          多
+        </button>
+        <button
+          type="button"
+          className="fab"
+          aria-label="添加单品"
+          onClick={() => navigate('/items/new')}
+        >
+          +
+        </button>
+      </div>
+      {toast && <Toast message={toast} onClose={() => setToast('')} />}
     </div>
   )
 }

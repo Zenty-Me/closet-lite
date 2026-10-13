@@ -12,7 +12,7 @@ import { getAllWearLogs, getItem, saveItem, softDeleteItem, uid } from '../db'
 import { buildWearCounts } from '../utils/wearStats'
 import { compressImage } from '../utils/image'
 import { ImagePicker } from '../components/ImagePicker'
-import { useBlobUrl } from '../hooks/useBlobUrl'
+import { ImageEditor } from '../components/ImageEditor'
 import { Toast } from '../components/Toast'
 
 export function ItemForm() {
@@ -32,12 +32,11 @@ export function ItemForm() {
   const [tagsText, setTagsText] = useState('')
   const [purchaseDate, setPurchaseDate] = useState('')
   const [imageBlob, setImageBlob] = useState<Blob | null>(null)
+  const [originalBlob, setOriginalBlob] = useState<Blob | null>(null)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState('')
   const [ready, setReady] = useState(isNew)
   const [wearCount, setWearCount] = useState(0)
-
-  const preview = useBlobUrl(imageBlob)
 
   useEffect(() => {
     if (isNew) return
@@ -59,6 +58,7 @@ export function ItemForm() {
       setTagsText(item.tags.join(' '))
       setPurchaseDate(item.purchaseDate)
       setImageBlob(item.imageBlob)
+      setOriginalBlob(item.originalBlob ?? null)
       const logs = await getAllWearLogs()
       setWearCount(buildWearCounts(logs).get(item.id)?.count ?? 0)
       setReady(true)
@@ -67,7 +67,9 @@ export function ItemForm() {
 
   const onPick = async (file: File) => {
     try {
-      setImageBlob(await compressImage(file))
+      const compressed = await compressImage(file)
+      setOriginalBlob(compressed)
+      setImageBlob(compressed)
     } catch {
       setToast('图片处理失败，请重试')
     }
@@ -102,6 +104,7 @@ export function ItemForm() {
       tags: parseTags(tagsText),
       purchaseDate: purchaseDate,
       imageBlob,
+      originalBlob: originalBlob ?? undefined,
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,
       deletedAt: null,
@@ -131,7 +134,14 @@ export function ItemForm() {
         </p>
       )}
 
-      {preview && <img className="image-preview" src={preview} alt="预览" />}
+      {imageBlob ? (
+        <ImageEditor
+          blob={imageBlob}
+          originalBlob={originalBlob}
+          onChange={setImageBlob}
+          onOriginalChange={setOriginalBlob}
+        />
+      ) : null}
       <ImagePicker onPick={onPick} />
 
       <div className="form-group">

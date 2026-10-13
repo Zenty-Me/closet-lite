@@ -32,3 +32,8 @@ Self-check: not purple SaaS, not cream+terracotta, not acid green, not broadshee
 2. Restraint — one accent, one serif title treatment
 3. Chanel rule: remove decorative purple chrome
 4. Motion only for press feedback; honor `prefers-reduced-motion`
+
+## Batch 2 — cutout strategy
+「去背景」uses `@imgly/background-removal` loaded from jsDelivr on first use
+(CDN ESM + IMG.LY-hosted ONNX/WASM). Keeps GitHub Pages / PWA shell small;
+processing stays in-browser after download. Needs network the first time.

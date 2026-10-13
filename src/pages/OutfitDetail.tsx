@@ -27,6 +27,7 @@ export function OutfitDetail() {
   const [outfit, setOutfit] = useState<Outfit | null>(null)
   const [items, setItems] = useState<ClothingItem[]>([])
   const [ready, setReady] = useState(false)
+  const coverUrl = useBlobUrl(outfit?.coverBlob ?? null)
 
   useEffect(() => {
     if (!id) return
@@ -61,6 +62,10 @@ export function OutfitDetail() {
         <p className="page-sub">场合：{outfit.occasion}</p>
       ) : (
         <p className="page-sub">共 {items.length} 件单品</p>
+      )}
+
+      {coverUrl && (
+        <img className="collage-preview" src={coverUrl} alt="搭配拼图" />
       )}
 
       {items.length === 0 ? (

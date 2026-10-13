@@ -1148,3 +1148,94 @@ img {
   width: 20px;
   height: 20px;
 }
+
+/* —— Batch 2: image editor / collage / batch fab —— */
+.image-editor {
+  margin-bottom: 12px;
+}
+
+.image-editor-stage {
+  position: relative;
+  touch-action: none;
+  user-select: none;
+}
+
+.image-editor-stage.cropping {
+  cursor: crosshair;
+}
+
+.image-editor-stage .image-preview {
+  margin-bottom: 0;
+  pointer-events: none;
+}
+
+.crop-box {
+  position: absolute;
+  border: 2px solid var(--accent);
+  background: rgba(61, 74, 46, 0.15);
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.image-editor-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.editor-status {
+  margin-top: 8px;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.editor-status.error {
+  color: var(--danger);
+}
+
+.collage-preview {
+  width: 100%;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  margin-bottom: 10px;
+  background: var(--bg);
+  object-fit: contain;
+  max-height: 420px;
+}
+
+.outfit-cover {
+  width: 100%;
+  max-height: 160px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  background: #ebe4d8;
+}
+
+.fab-cluster {
+  position: fixed;
+  right: max(16px, calc(50% - 240px + 16px));
+  bottom: calc(var(--nav-h) + var(--safe-b) + 14px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 90;
+  align-items: center;
+}
+
+.fab-cluster .fab {
+  position: static;
+  right: auto;
+  bottom: auto;
+}
+
+.fab-secondary {
+  width: 44px;
+  height: 44px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: var(--surface);
+  color: var(--accent);
+  border: 1px solid var(--line);
+}

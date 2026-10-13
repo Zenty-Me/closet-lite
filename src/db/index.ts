@@ -34,7 +34,7 @@ interface WardrobeDB extends DBSchema {
 }
 
 const DB_NAME = 'qing-yichu'
-const DB_VERSION = 2
+const DB_VERSION = 3
 
 let dbPromise: Promise<IDBPDatabase<WardrobeDB>> | null = null
 
@@ -59,6 +59,7 @@ function getDB() {
             insp.createIndex('by-created', 'createdAt')
           }
         }
+        // v3: soft fields originalBlob / coverBlob — no store changes; normalize on read
       },
     })
   }

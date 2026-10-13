@@ -50,6 +50,8 @@ export interface ClothingItem {
   tags: string[]
   purchaseDate: string
   imageBlob: Blob
+  /** Pre-cutout / pre-edit original for undo */
+  originalBlob?: Blob
   createdAt: number
   updatedAt: number
   deletedAt?: number | null
@@ -60,6 +62,8 @@ export interface Outfit {
   name: string
   occasion: string
   itemIds: string[]
+  /** Collage lookboard cover */
+  coverBlob?: Blob
   createdAt: number
   updatedAt: number
   deletedAt?: number | null
@@ -87,15 +91,27 @@ export interface Inspiration {
   deletedAt?: number | null
 }
 
-export type BackupItemV2 = Omit<ClothingItem, 'imageBlob'> & { imageBase64: string }
-export type BackupWearLogV2 = Omit<WearLog, 'photoBlob'> & { photoBase64?: string }
-export type BackupInspirationV2 = Omit<Inspiration, 'imageBlob'> & { imageBase64: string }
+export type BackupItemV3 = Omit<ClothingItem, 'imageBlob' | 'originalBlob'> & {
+  imageBase64: string
+  originalBase64?: string
+}
+export type BackupWearLogV3 = Omit<WearLog, 'photoBlob'> & { photoBase64?: string }
+export type BackupInspirationV3 = Omit<Inspiration, 'imageBlob'> & { imageBase64: string }
+export type BackupOutfitV3 = Omit<Outfit, 'coverBlob'> & { coverBase64?: string }
 
 export interface BackupDataV1 {
   version: 1
   exportedAt: string
-  items: Array<Omit<ClothingItem, 'imageBlob' | 'brand' | 'price' | 'size' | 'location' | 'tags' | 'purchaseDate' | 'deletedAt'> & {
+  items: Array<{
+    id: string
+    name: string
+    category: Category
+    color: ColorName
+    season: Season
+    notes: string
     imageBase64: string
+    createdAt: number
+    updatedAt: number
     brand?: string
     price?: number | null
     size?: string
@@ -110,17 +126,26 @@ export interface BackupDataV1 {
 export interface BackupDataV2 {
   version: 2
   exportedAt: string
-  items: BackupItemV2[]
+  items: Array<Omit<ClothingItem, 'imageBlob' | 'originalBlob'> & { imageBase64: string }>
   outfits: Outfit[]
-  wearLogs: BackupWearLogV2[]
-  inspirations: BackupInspirationV2[]
+  wearLogs: BackupWearLogV3[]
+  inspirations: BackupInspirationV3[]
 }
 
-export type BackupData = BackupDataV1 | BackupDataV2
+export interface BackupDataV3 {
+  version: 3
+  exportedAt: string
+  items: BackupItemV3[]
+  outfits: BackupOutfitV3[]
+  wearLogs: BackupWearLogV3[]
+  inspirations: BackupInspirationV3[]
+}
 
-/** Fill missing fields for records loaded from older IDB / backups. */
+export type BackupData = BackupDataV1 | BackupDataV2 | BackupDataV3
+
 export function normalizeItem(
-  raw: Partial<ClothingItem> & Pick<ClothingItem, 'id' | 'imageBlob' | 'category' | 'color' | 'season' | 'createdAt' | 'updatedAt'>,
+  raw: Partial<ClothingItem> &
+    Pick<ClothingItem, 'id' | 'imageBlob' | 'category' | 'color' | 'season' | 'createdAt' | 'updatedAt'>,
 ): ClothingItem {
   return {
     id: raw.id,
@@ -136,6 +161,7 @@ export function normalizeItem(
     tags: Array.isArray(raw.tags) ? raw.tags : [],
     purchaseDate: raw.purchaseDate ?? '',
     imageBlob: raw.imageBlob,
+    originalBlob: raw.originalBlob,
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
     deletedAt: raw.deletedAt ?? null,
@@ -143,10 +169,16 @@ export function normalizeItem(
 }
 
 export function normalizeOutfit(raw: Outfit): Outfit {
-  return { ...raw, deletedAt: raw.deletedAt ?? null }
+  return {
+    ...raw,
+    deletedAt: raw.deletedAt ?? null,
+    coverBlob: raw.coverBlob,
+  }
 }
 
-export function normalizeWearLog(raw: Partial<WearLog> & Pick<WearLog, 'id' | 'date' | 'itemIds' | 'createdAt'>): WearLog {
+export function normalizeWearLog(
+  raw: Partial<WearLog> & Pick<WearLog, 'id' | 'date' | 'itemIds' | 'createdAt'>,
+): WearLog {
   return {
     id: raw.id,
     date: raw.date,
