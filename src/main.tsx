@@ -4,12 +4,22 @@ import './index.css'
 import App from './App'
 import { registerSW } from 'virtual:pwa-register'
 import { scheduleCutoutWarmup } from './utils/cutout'
+import { I18nProvider } from './i18n/I18nProvider'
+import { getLang } from './i18n'
+
+try {
+  document.documentElement.lang = getLang() === 'en' ? 'en' : 'zh-CN'
+} catch {
+  /* ignore */
+}
 
 registerSW({ immediate: true })
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <I18nProvider>
+      <App />
+    </I18nProvider>
   </StrictMode>,
 )
 

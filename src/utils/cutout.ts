@@ -15,6 +15,7 @@
  */
 
 import { Capacitor } from '@capacitor/core'
+import { t } from '../i18n'
 import type { CutoutWorkerIn, CutoutWorkerOut } from './cutout.worker'
 
 const PKG = '1.7.0'
@@ -364,18 +365,16 @@ export async function warmupCutoutModel(): Promise<void> {
 export function cutoutErrorMessage(err: unknown): string {
   const msg = err instanceof Error ? err.message : String(err ?? '')
   if (msg === 'NATIVE_MISSING_ASSETS') {
-    return '去背景失败：包内模型未找到。请重新安装最新版 APK。'
+    return t('cutout.failNativeMissing')
   }
   if (isNativePlatform()) {
-    return '去背景失败：本地模型加载出错。请重试或重新安装最新版 APK。'
+    return t('cutout.failNative')
   }
-  return '去背景失败，请稍后重试。网页端首次可能需联网加载模型。'
+  return t('cutout.failWeb')
 }
 
 export function cutoutBusyMessage(percent?: number): string {
-  const base = isNativePlatform()
-    ? '正在去背景（使用包内模型）'
-    : '正在去背景（加载本地模型）'
+  const base = isNativePlatform() ? t('cutout.busyNative') : t('cutout.busyWeb')
   if (typeof percent === 'number' && percent > 0) {
     return `${base} ${Math.min(99, Math.round(percent))}%…`
   }

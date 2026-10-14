@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { cropImage, rotateImage } from '../utils/image'
 import { useBlobUrl } from '../hooks/useBlobUrl'
 import {
@@ -7,6 +8,8 @@ import {
   removeImageBackground,
   yieldToUi,
 } from '../utils/cutout'
+import { canUse, consumeQuota } from '../utils/quota'
+import { useI18n } from '../i18n/I18nProvider'
 
 interface Props {
   blob: Blob
@@ -24,11 +27,14 @@ export function ImageEditor({
   onOriginalChange,
   enableCutout = true,
 }: Props) {
+  const { t } = useI18n()
+  const navigate = useNavigate()
   const url = useBlobUrl(blob)
   const imgRef = useRef<HTMLImageElement>(null)
   const [cropping, setCropping] = useState(false)
   const [busy, setBusy] = useState('')
   const [error, setError] = useState('')
+  const [quotaHint, setQuotaHint] = useState('')
   const [drag, setDrag] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
   const start = useRef<{ x: number; y: number } | null>(null)
 
@@ -36,13 +42,23 @@ export function ImageEditor({
     setError('')
   }, [blob])
 
+  useEffect(() => {
+    void canUse('cutout').then(({ status }) => {
+      if (status.cutoutUnlimited) {
+        setQuotaHint('')
+        return
+      }
+      setQuotaHint(t('cutout.quotaLeft', { n: status.cutoutLeft }))
+    })
+  }, [t, blob])
+
   const rotate = async () => {
-    setBusy('旋转中…')
+    setBusy(t('editor.rotating'))
     try {
       const next = await rotateImage(blob, 1)
       onChange(next)
     } catch {
-      setError('旋转失败')
+      setError(t('editor.rotateFail'))
     }
     setBusy('')
   }
@@ -86,23 +102,34 @@ export function ImageEditor({
 
   const applyCrop = async () => {
     if (!drag || drag.w < 0.05 || drag.h < 0.05) {
-      setError('请拖选一块区域')
+      setError(t('editor.cropHint'))
       return
     }
-    setBusy('裁剪中…')
+    setBusy(t('editor.cropping'))
     try {
       const next = await cropImage(blob, drag)
       onChange(next)
       setCropping(false)
       setDrag(null)
     } catch {
-      setError('裁剪失败')
+      setError(t('editor.cropFail'))
     }
     setBusy('')
   }
 
   const cutout = async () => {
-    // Paint disabled button + status before any heavy work / worker spawn.
+    const gate = await canUse('cutout')
+    if (!gate.ok) {
+      setError(
+        t('cutout.quotaExhausted', {
+          used: gate.status.cutoutUsed,
+          limit: gate.status.cutoutLimit,
+        }),
+      )
+      setQuotaHint(t('cutout.upgradeCta'))
+      return
+    }
+
     setBusy(cutoutBusyMessage(0))
     setError('')
     await yieldToUi()
@@ -112,6 +139,10 @@ export function ImageEditor({
         onProgress: (p) => setBusy(cutoutBusyMessage(p.percent)),
       })
       onChange(raw)
+      const next = await consumeQuota('cutout')
+      if (!next.cutoutUnlimited) {
+        setQuotaHint(t('cutout.quotaLeft', { n: next.cutoutLeft }))
+      }
     } catch (err) {
       console.error(err)
       setError(cutoutErrorMessage(err))
@@ -132,7 +163,9 @@ export function ImageEditor({
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
       >
-        {url && <img ref={imgRef} className="image-preview" src={url} alt="预览" draggable={false} />}
+        {url && (
+          <img ref={imgRef} className="image-preview" src={url} alt={t('editor.preview')} draggable={false} />
+        )}
         {cropping && drag && drag.w > 0 && (
           <div
             className="crop-box"
@@ -148,16 +181,16 @@ export function ImageEditor({
 
       <div className="image-editor-tools">
         <button type="button" className="chip" disabled={!!busy} onClick={() => void rotate()}>
-          旋转 90°
+          {t('editor.rotate')}
         </button>
         {!cropping ? (
           <button type="button" className="chip" disabled={!!busy} onClick={() => setCropping(true)}>
-            裁剪
+            {t('editor.crop')}
           </button>
         ) : (
           <>
             <button type="button" className="chip active" disabled={!!busy} onClick={() => void applyCrop()}>
-              确认裁剪
+              {t('editor.confirmCrop')}
             </button>
             <button
               type="button"
@@ -167,23 +200,36 @@ export function ImageEditor({
                 setDrag(null)
               }}
             >
-              取消
+              {t('editor.cancel')}
             </button>
           </>
         )}
         {enableCutout && (
           <button type="button" className="chip" disabled={!!busy} onClick={() => void cutout()}>
-            去背景
+            {t('cutout.btn')}
           </button>
         )}
         {originalBlob && (
           <button type="button" className="chip" disabled={!!busy} onClick={restore}>
-            恢复原图
+            {t('editor.restore')}
           </button>
         )}
       </div>
       {busy && <p className="editor-status">{busy}</p>}
-      {error && <p className="editor-status error">{error}</p>}
+      {error && (
+        <p className="editor-status error">
+          {error}
+          {error.includes('/') || error.toLowerCase().includes('limit') || error.includes('用完') ? (
+            <>
+              {' '}
+              <button type="button" className="btn-text" onClick={() => navigate('/upgrade')}>
+                {t('cutout.upgradeCta')}
+              </button>
+            </>
+          ) : null}
+        </p>
+      )}
+      {!error && quotaHint && enableCutout && <p className="editor-status muted">{quotaHint}</p>}
     </div>
   )
 }

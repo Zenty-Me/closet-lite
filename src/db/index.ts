@@ -12,6 +12,14 @@ import {
   type WishlistItem,
 } from '../types'
 
+export interface QuotaRecord {
+  key: 'usageQuota'
+  /** YYYY-MM calendar month in local time */
+  month: string
+  cutoutUsed: number
+  outfitUsed: number
+}
+
 interface WardrobeDB extends DBSchema {
   items: {
     key: string
@@ -38,10 +46,14 @@ interface WardrobeDB extends DBSchema {
     value: WishlistItem
     indexes: { 'by-created': number }
   }
+  appMeta: {
+    key: string
+    value: QuotaRecord
+  }
 }
 
 const DB_NAME = 'qing-yichu'
-const DB_VERSION = 10
+const DB_VERSION = 11
 
 let dbPromise: Promise<IDBPDatabase<WardrobeDB>> | null = null
 
@@ -72,6 +84,11 @@ function getDB() {
         // v6: color stored as hex — normalizeColorHex on read
         // v7–v9: soft fields
         // v10: seasons[] multi-select — normalizeItem migrates legacy season
+        if (oldVersion < 11) {
+          if (!db.objectStoreNames.contains('appMeta')) {
+            db.createObjectStore('appMeta', { keyPath: 'key' })
+          }
+        }
       },
     })
   }
@@ -387,4 +404,16 @@ export async function importAllData(
   }
   ops.push(tx.done)
   await Promise.all(ops)
+}
+
+// —— App meta / quotas ——
+export async function getQuotaRecord(): Promise<QuotaRecord | undefined> {
+  const db = await getDB()
+  if (!db.objectStoreNames.contains('appMeta')) return undefined
+  return db.get('appMeta', 'usageQuota')
+}
+
+export async function putQuotaRecord(rec: QuotaRecord): Promise<void> {
+  const db = await getDB()
+  await db.put('appMeta', rec)
 }

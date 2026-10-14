@@ -18,6 +18,13 @@ export interface AppSettings {
   shopSearchKeyword: string
   /** 换季提醒横幅 */
   seasonReminder: boolean
+  /** UI language; default zh for existing users */
+  language: 'zh' | 'en'
+  /**
+   * Local Pro unlock until Stripe is wired.
+   * When true: unlimited cutout/outfit + JSON backup export/import.
+   */
+  isPro: boolean
 }
 
 function defaults(): AppSettings {
@@ -28,6 +35,8 @@ function defaults(): AppSettings {
     includeRetiredInValue: false,
     shopSearchKeyword: '',
     seasonReminder: true,
+    language: 'zh',
+    isPro: false,
   }
 }
 
@@ -65,6 +74,8 @@ export function loadSettings(): AppSettings {
       includeRetiredInValue: Boolean(parsed.includeRetiredInValue),
       shopSearchKeyword: typeof parsed.shopSearchKeyword === 'string' ? parsed.shopSearchKeyword : '',
       seasonReminder: parsed.seasonReminder !== false,
+      language: parsed.language === 'en' ? 'en' : 'zh',
+      isPro: Boolean(parsed.isPro),
     }
   } catch {
     return defaults()
