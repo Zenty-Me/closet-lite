@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
-export function useBlobUrl(blob: Blob | undefined | null): string {
+/** Create object URL for a Blob. Pass `rev` (e.g. updatedAt) so URL refreshes when content changes. */
+export function useBlobUrl(blob: Blob | undefined | null, rev?: string | number): string {
   const [url, setUrl] = useState('')
 
   useEffect(() => {
@@ -11,7 +12,7 @@ export function useBlobUrl(blob: Blob | undefined | null): string {
     const u = URL.createObjectURL(blob)
     setUrl(u)
     return () => URL.revokeObjectURL(u)
-  }, [blob])
+  }, [blob, rev])
 
   return url
 }

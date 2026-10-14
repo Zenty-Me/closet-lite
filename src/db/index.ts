@@ -41,7 +41,7 @@ interface WardrobeDB extends DBSchema {
 }
 
 const DB_NAME = 'qing-yichu'
-const DB_VERSION = 9
+const DB_VERSION = 10
 
 let dbPromise: Promise<IDBPDatabase<WardrobeDB>> | null = null
 
@@ -70,6 +70,8 @@ function getDB() {
         // v4: extraImages / tempMin / tempMax / status / 连衣裙 category — normalize on read
         // v5: subcategory string — normalize on read
         // v6: color stored as hex — normalizeColorHex on read
+        // v7–v9: soft fields
+        // v10: seasons[] multi-select — normalizeItem migrates legacy season
       },
     })
   }

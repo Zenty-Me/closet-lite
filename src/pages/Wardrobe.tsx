@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { getAllItems, getAllWearLogs, getItem, saveItem, softDeleteItem, uid } from '../db'
 import type { Category, ClothingItem, Season } from '../types'
 import {
@@ -46,7 +46,7 @@ function loadView(): ViewMode {
 }
 
 function GroupThumb({ item, onClick }: { item: ClothingItem; onClick: () => void }) {
-  const url = useBlobUrl(item.imageBlob)
+  const url = useBlobUrl(item.imageBlob, item.updatedAt)
   return (
     <button type="button" className="group-thumb" onClick={onClick}>
       {url ? <img src={url} alt={item.name || item.category} /> : <div className="group-thumb-ph" />}
@@ -94,6 +94,28 @@ export function Wardrobe() {
 
   useEffect(() => {
     void load()
+  }, [load])
+
+  const location = useLocation()
+
+  // Reload list when returning to wardrobe so edited imageBlob thumbnails stay in sync
+  useEffect(() => {
+    if (location.pathname === '/' || location.pathname === '') {
+      void load()
+    }
+  }, [location.pathname, location.key, load])
+
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState === 'visible') void load()
+    }
+    const onPageShow = () => void load()
+    document.addEventListener('visibilitychange', onVis)
+    window.addEventListener('pageshow', onPageShow)
+    return () => {
+      document.removeEventListener('visibilitychange', onVis)
+      window.removeEventListener('pageshow', onPageShow)
+    }
   }, [load])
 
   useEffect(() => {
@@ -192,7 +214,7 @@ export function Wardrobe() {
           name: '',
           category: '其他',
           color: '#bbb5a8',
-          season: '四季',
+          seasons: ['四季'],
           notes: '',
           brand: '',
           price: null,
@@ -235,7 +257,7 @@ export function Wardrobe() {
         ...item,
         category: patch.category ?? item.category,
         subcategory: patch.subcategory !== undefined ? patch.subcategory : item.subcategory,
-        season: patch.season ?? item.season,
+        seasons: patch.seasons ?? item.seasons,
         color: patch.color ?? item.color,
         brand: patch.brand !== undefined ? patch.brand : item.brand,
         location: patch.location !== undefined ? patch.location : item.location,
@@ -555,7 +577,7 @@ export function Wardrobe() {
                         <p className="subcat-empty-hint">该子分类下暂无单品</p>
                       ) : (
                         shown.map((it) => (
-                          <GroupThumb key={it.id} item={it} onClick={() => navigate(`/items/${it.id}`)} />
+                          <GroupThumb key={`${it.id}-${it.updatedAt}`} item={it} onClick={() => navigate(`/items/${it.id}`)} />
                         ))
                       )}
                     </div>
@@ -571,7 +593,7 @@ export function Wardrobe() {
         <div className="item-grid">
           {filtered.map((item) => (
             <ItemCard
-              key={item.id}
+              key={`${item.id}-${item.updatedAt}`}
               item={item}
               wearCount={wearMap.get(item.id)}
               selectMode={selectMode}

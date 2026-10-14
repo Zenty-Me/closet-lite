@@ -10,11 +10,12 @@ import {
 import { SubcategoryPicker } from './SubcategoryPicker'
 import { ColorPicker } from './ColorPicker'
 import { addSubcategoryLabel, loadSettings, saveSettings } from '../utils/settings'
+import { formatSeasons, toggleSeason } from '../utils/seasons'
 
 export interface BatchPatch {
   category?: Category
   subcategory?: string
-  season?: Season
+  seasons?: Season[]
   color?: string
   brand?: string
   location?: string
@@ -41,7 +42,7 @@ export function BatchEditSheet({ count, onApply, onClose }: Props) {
 
   const [category, setCategory] = useState<Category>('上衣')
   const [subcategory, setSubcategory] = useState('')
-  const [season, setSeason] = useState<Season>('四季')
+  const [seasons, setSeasons] = useState<Season[]>(['四季'])
   const [color, setColor] = useState('#1c1916')
   const [brand, setBrand] = useState('')
   const [location, setLocation] = useState('')
@@ -52,7 +53,7 @@ export function BatchEditSheet({ count, onApply, onClose }: Props) {
     const patch: BatchPatch = {}
     if (enableCategory) patch.category = category
     if (enableSubcategory) patch.subcategory = subcategory.trim()
-    if (enableSeason) patch.season = season
+    if (enableSeason) patch.seasons = seasons
     if (enableColor) patch.color = normalizeColorHex(color)
     if (enableBrand) patch.brand = brand.trim()
     if (enableLocation) patch.location = location.trim()
@@ -117,14 +118,17 @@ export function BatchEditSheet({ count, onApply, onClose }: Props) {
           />
         </FieldToggle>
 
-        <FieldToggle label="季节" on={enableSeason} setOn={setEnableSeason}>
+        <FieldToggle label="季节（可多选）" on={enableSeason} setOn={setEnableSeason}>
+          <p className="insight-hint" style={{ marginBottom: 8 }}>
+            「四季」= 全年；选具体季节会取消四季。当前：{formatSeasons(seasons)}
+          </p>
           <div className="chip-select">
             {SEASONS.map((s) => (
               <button
                 key={s}
                 type="button"
-                className={`chip${season === s ? ' active' : ''}`}
-                onClick={() => setSeason(s)}
+                className={`chip${seasons.includes(s) ? ' active' : ''}`}
+                onClick={() => setSeasons((prev) => toggleSeason(prev, s))}
               >
                 {s}
               </button>

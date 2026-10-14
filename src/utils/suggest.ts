@@ -1,4 +1,5 @@
 import type { Category, ClothingItem, Season } from '../types'
+import { itemHasSeason } from './seasons'
 
 /** Northern-hemisphere-ish mapping for CN users. */
 export function seasonFromMonth(month: number): Exclude<Season, '四季'> {
@@ -13,7 +14,7 @@ export function currentSeason(date = new Date()): Exclude<Season, '四季'> {
 }
 
 export function itemFitsSeason(item: ClothingItem, season: Season): boolean {
-  return item.season === '四季' || item.season === season
+  return itemHasSeason(item, season)
 }
 
 function pickRandom<T>(arr: T[]): T | undefined {

@@ -29,6 +29,7 @@ import { formatYuan } from '../utils/valueStats'
 import { SubcategoryPicker } from '../components/SubcategoryPicker'
 import { ColorPicker } from '../components/ColorPicker'
 import { addSubcategoryLabel, loadSettings, saveSettings } from '../utils/settings'
+import { formatSeasons, toggleSeason } from '../utils/seasons'
 
 export function ItemDetail() {
   const { id } = useParams()
@@ -39,7 +40,7 @@ export function ItemDetail() {
   const [editImage, setEditImage] = useState(false)
   const [fieldEdit, setFieldEdit] = useState<string | null>(null)
   const [toast, setToast] = useState('')
-  const mainUrl = useBlobUrl(item?.imageBlob ?? null)
+  const mainUrl = useBlobUrl(item?.imageBlob ?? null, item?.updatedAt)
   const extraRef = useRef<HTMLInputElement>(null)
 
   const load = useCallback(async () => {
@@ -194,7 +195,7 @@ export function ItemDetail() {
           swatch={normalizeColorHex(item.color)}
           onClick={() => setFieldEdit('color')}
         />
-        <AttrRow label="季节" value={item.season || '未设置'} onClick={() => setFieldEdit('season')} />
+        <AttrRow label="季节" value={formatSeasons(item.seasons)} onClick={() => setFieldEdit('season')} />
         <AttrRow label="适合温度" value={tempLabel} onClick={() => setFieldEdit('temp')} />
         <AttrRow
           label="收纳位置"
@@ -428,6 +429,7 @@ function FieldSheet({
   const [location, setLocation] = useState(item.location)
   const [tMin, setTMin] = useState(item.tempMin != null ? String(item.tempMin) : '')
   const [tMax, setTMax] = useState(item.tempMax != null ? String(item.tempMax) : '')
+  const [seasonsDraft, setSeasonsDraft] = useState<Season[]>(item.seasons?.length ? item.seasons : ['四季'])
 
   const titleMap: Record<string, string> = {
     name: '名称',
@@ -499,13 +501,29 @@ function FieldSheet({
           />
         )}
         {field === 'season' && (
-          <div className="chip-select">
-            {SEASONS.map((s) => (
-              <button key={s} type="button" className={`chip${item.season === s ? ' active' : ''}`} onClick={() => onSave({ season: s as Season })}>
-                {s}
-              </button>
-            ))}
-          </div>
+          <>
+            <p className="insight-hint" style={{ marginTop: 0 }}>可多选；「四季」表示全年可用</p>
+            <div className="chip-select">
+              {SEASONS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  className={`chip${seasonsDraft.includes(s) ? ' active' : ''}`}
+                  onClick={() => setSeasonsDraft((prev) => toggleSeason(prev, s))}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="btn btn-primary btn-block"
+              style={{ marginTop: 12 }}
+              onClick={() => onSave({ seasons: seasonsDraft })}
+            >
+              保存（{formatSeasons(seasonsDraft)}）
+            </button>
+          </>
         )}
         {field === 'status' && (
           <div className="chip-select">

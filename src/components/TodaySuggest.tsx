@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { ClothingItem } from '../types'
-import { currentSeason, suggestTodayOutfit } from '../utils/suggest'
+import { currentSeason, itemFitsSeason, suggestTodayOutfit } from '../utils/suggest'
 import { saveOutfit, uid } from '../db'
 import { useBlobUrl } from '../hooks/useBlobUrl'
 import { Toast } from './Toast'
 
 function MiniThumb({ item }: { item: ClothingItem }) {
-  const url = useBlobUrl(item.imageBlob)
+  const url = useBlobUrl(item.imageBlob, item.updatedAt)
   return url ? (
     <img className="suggest-thumb" src={url} alt={item.name || item.category} />
   ) : (
@@ -55,9 +55,7 @@ export function TodaySuggest({ items }: Props) {
 
   if (items.length < 2) return null
 
-  const seasonalCount = items.filter(
-    (i) => i.season === '四季' || i.season === season,
-  ).length
+  const seasonalCount = items.filter((i) => itemFitsSeason(i, season)).length
 
   if (seasonalCount === 0) {
     return (
