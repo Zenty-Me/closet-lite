@@ -8,9 +8,11 @@ on:
       - 'android/**'
       - 'src/**'
       - 'public/**'
+      - 'scripts/**'
       - 'capacitor.config.ts'
       - 'package.json'
       - 'package-lock.json'
+      - 'vite.config.ts'
       - '.github/workflows/android-debug.yml'
 
 permissions:
@@ -35,10 +37,45 @@ jobs:
           packages: platform-tools platforms;android-34 build-tools;34.0.0
       - run: npm ci
       - run: npm run fetch:bg-removal
+      - name: Verify bg-removal model chunks
+        run: |
+          set -euo pipefail
+          test -f public/bg-removal/resources.json
+          # resources.json alone is committed; chunks must be fetched (~76MB)
+          CHUNK_COUNT=$(find public/bg-removal -type f ! -name 'README.md' ! -name 'resources.json' ! -name '.gitkeep' | wc -l)
+          BYTES=$(du -sb public/bg-removal | cut -f1)
+          echo "bg-removal files (excl meta): $CHUNK_COUNT, bytes: $BYTES"
+          test "$CHUNK_COUNT" -ge 20
+          # pruned set is ~80MB; fail if under 50MB (would ship a hollow APK again)
+          test "$BYTES" -ge 50000000
+          ls -lh public/bg-removal | head -30
       - name: Build web (native base)
         run: VITE_BASE=/ npx tsc -b && VITE_BASE=/ npx vite build
       - name: Capacitor sync
         run: npx cap sync android
+      - name: Verify models synced into android assets
+        run: |
+          set -euo pipefail
+          ASSET=android/app/src/main/assets/public/bg-removal
+          test -d "$ASSET"
+          BYTES=$(du -sb "$ASSET" | cut -f1)
+          echo "android assets bg-removal bytes: $BYTES"
+          test "$BYTES" -ge 50000000
+          # spot-check a known model chunk hash from resources.json
+          python3 - <<'PY'
+          import json, os, sys
+          root = "android/app/src/main/assets/public/bg-removal"
+          with open(os.path.join(root, "resources.json")) as f:
+              res = json.load(f)
+          entry = res.get("/models/isnet_quint8")
+          if not entry or not entry.get("chunks"):
+              sys.exit("missing isnet_quint8 chunks in resources.json")
+          name = entry["chunks"][0]["name"]
+          path = os.path.join(root, name)
+          if not os.path.isfile(path):
+              sys.exit(f"missing chunk in android assets: {name}")
+          print("ok:", name, os.path.getsize(path))
+          PY
       - name: Assemble debug APK
         working-directory: android
         run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
@@ -47,6 +84,10 @@ jobs:
           mkdir -p dist-apk
           cp android/app/build/outputs/apk/debug/*.apk dist-apk/qing-yichu-debug.apk
           ls -lh dist-apk/
+          BYTES=$(stat -c%s dist-apk/qing-yichu-debug.apk)
+          echo "APK bytes: $BYTES"
+          # models alone ~76MB; APK should be well over 50MB once packaged
+          test "$BYTES" -ge 50000000
       - uses: actions/upload-artifact@v4
         with:
           name: qing-yichu-debug
