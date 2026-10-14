@@ -81,13 +81,19 @@ jobs:
         run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
       - name: Rename APK
         run: |
+          set -euo pipefail
           mkdir -p dist-apk
           cp android/app/build/outputs/apk/debug/*.apk dist-apk/qing-yichu-debug.apk
           ls -lh dist-apk/
           BYTES=$(stat -c%s dist-apk/qing-yichu-debug.apk)
           echo "APK bytes: $BYTES"
-          # models alone ~76MB; APK should be well over 50MB once packaged
-          test "$BYTES" -ge 50000000
+          # Uncompressed models ~79MB; zip-compressed APK lands ~45–50MB.
+          # Old hollow build was ~4.6MB — require >> that and prove chunks are inside.
+          test "$BYTES" -ge 40000000
+          CHUNK_IN_APK=$(unzip -l dist-apk/qing-yichu-debug.apk | grep -c 'assets/public/bg-removal/' || true)
+          echo "bg-removal entries in APK: $CHUNK_IN_APK"
+          test "$CHUNK_IN_APK" -ge 20
+          unzip -l dist-apk/qing-yichu-debug.apk | grep 'assets/public/bg-removal/' | head -10 || true
       - uses: actions/upload-artifact@v4
         with:
           name: qing-yichu-debug
