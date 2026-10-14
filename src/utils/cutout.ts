@@ -38,8 +38,21 @@ async function probeLocal(): Promise<string | null> {
       cache: 'force-cache',
     })
     if (!res.ok) return null
-    const json = (await res.json()) as Record<string, unknown>
-    if (!json['/models/isnet_quint8']) return null
+    const json = (await res.json()) as Record<
+      string,
+      { chunks?: Array<{ name: string }> } | undefined
+    >
+    const model = json['/models/isnet_quint8']
+    if (!model) return null
+    // resources.json alone may be committed without gitignored chunks — verify one.
+    const first = model.chunks?.[0]?.name
+    if (first) {
+      const chunkRes = await fetch(new URL(first, path).href, {
+        method: 'HEAD',
+        cache: 'force-cache',
+      })
+      if (!chunkRes.ok) return null
+    }
     return path.endsWith('/') ? path : `${path}/`
   } catch {
     return null
