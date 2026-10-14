@@ -7,7 +7,9 @@ import { EmptyState } from '../components/EmptyState'
 import { useBlobUrl } from '../hooks/useBlobUrl'
 import { randomOutfit } from '../utils/randomOutfit'
 import { loadSettings } from '../utils/settings'
+import { canUse, consumeQuota } from '../utils/quota'
 import { Toast } from '../components/Toast'
+import { useI18n } from '../i18n/I18nProvider'
 
 function OutfitThumb({ item }: { item: ClothingItem }) {
   const url = useBlobUrl(item.imageBlob)
@@ -18,23 +20,24 @@ function OutfitThumb({ item }: { item: ClothingItem }) {
   )
 }
 
-function OutfitCard({ outfit, onClick }: { outfit: Outfit; onClick: () => void }) {
+function OutfitCard({ outfit, onClick, unnamed }: { outfit: Outfit; onClick: () => void; unnamed: string }) {
   const [items, setItems] = useState<ClothingItem[]>([])
   const coverUrl = useBlobUrl(outfit.coverBlob ?? null)
+  const { t } = useI18n()
   useEffect(() => {
     void getItemsByIds(outfit.itemIds).then(setItems)
   }, [outfit.itemIds])
   return (
     <button type="button" className="outfit-card" onClick={onClick}>
       {coverUrl && <img className="outfit-cover" src={coverUrl} alt="" />}
-      <div className="outfit-card-title">{outfit.name || '未命名搭配'}</div>
+      <div className="outfit-card-title">{outfit.name || unnamed}</div>
       {outfit.occasion && <div className="outfit-card-occ">{outfit.occasion}</div>}
       <div className="outfit-thumbs">
         {items.slice(0, 6).map((it) => (
           <OutfitThumb key={it.id} item={it} />
         ))}
         {items.length === 0 && (
-          <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>暂无单品</span>
+          <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{t('outfits.noItems')}</span>
         )}
       </div>
     </button>
@@ -43,6 +46,7 @@ function OutfitCard({ outfit, onClick }: { outfit: Outfit; onClick: () => void }
 
 export function Outfits() {
   const navigate = useNavigate()
+  const { t } = useI18n()
   const [outfits, setOutfits] = useState<Outfit[]>([])
   const [allItems, setAllItems] = useState<ClothingItem[]>([])
   const [randomPicks, setRandomPicks] = useState<ClothingItem[]>([])
@@ -51,6 +55,7 @@ export function Outfits() {
   const [toast, setToast] = useState('')
   const [saving, setSaving] = useState(false)
   const [occasionFilter, setOccasionFilter] = useState<string | '全部'>('全部')
+  const [quotaLeft, setQuotaLeft] = useState<number | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -58,6 +63,8 @@ export function Outfits() {
     setOutfits(o)
     setAllItems(items)
     setLoading(false)
+    const { status } = await canUse('outfit')
+    setQuotaLeft(status.outfitUnlimited ? null : status.outfitLeft)
   }, [])
 
   useEffect(() => {
@@ -79,13 +86,28 @@ export function Outfits() {
     return outfits.filter((o) => o.occasion.trim() === occasionFilter)
   }, [outfits, occasionFilter])
 
-  const rollRandom = () => {
+  const rollRandom = async () => {
+    const gate = await canUse('outfit')
+    if (!gate.ok) {
+      setToast(
+        t('outfits.quotaExhausted', {
+          used: gate.status.outfitUsed,
+          limit: gate.status.outfitLimit,
+        }),
+      )
+      return
+    }
     const settings = loadSettings()
     const season = settings.seasonMode ? settings.currentSeasonFilter : null
     const picks = randomOutfit(allItems, season)
     setRandomPicks(picks)
     setShowRandom(true)
-    if (picks.length === 0) setToast('单品不够，先多加几件吧')
+    if (picks.length === 0) {
+      setToast(t('outfits.needMore'))
+      return
+    }
+    const next = await consumeQuota('outfit')
+    setQuotaLeft(next.outfitUnlimited ? null : next.outfitLeft)
   }
 
   const saveRandom = async () => {
@@ -95,7 +117,7 @@ export function Outfits() {
     const id = uid()
     await saveOutfit({
       id,
-      name: '随机搭配',
+      name: t('outfits.random'),
       occasion: '日常',
       itemIds: randomPicks.map((p) => p.id),
       createdAt: now,
@@ -103,7 +125,7 @@ export function Outfits() {
       deletedAt: null,
     })
     setSaving(false)
-    setToast('已保存')
+    setToast(t('outfits.saved'))
     setShowRandom(false)
     await load()
     navigate(`/outfits/${id}`)
@@ -111,9 +133,9 @@ export function Outfits() {
 
   return (
     <div className="page-with-fab">
-      <h1 className="page-title">搭配</h1>
+      <h1 className="page-title">{t('outfits.title')}</h1>
       <p className="page-sub">
-        {outfits.length > 0 ? `共 ${outfits.length} 套搭配` : '组合单品，保存穿搭灵感'}
+        {outfits.length > 0 ? t('outfits.count', { n: outfits.length }) : t('outfits.sub')}
       </p>
 
       {outfits.length > 0 && (
@@ -125,24 +147,44 @@ export function Outfits() {
               className={`chip${occasionFilter === o ? ' active' : ''}`}
               onClick={() => setOccasionFilter(o)}
             >
-              {o}
+              {o === '全部' ? t('common.all') : o}
             </button>
           ))}
         </div>
       )}
 
       {allItems.length >= 2 && (
-        <button type="button" className="btn btn-secondary btn-block" style={{ marginBottom: 14 }} onClick={rollRandom}>
-          随机搭配
-        </button>
+        <>
+          <button
+            type="button"
+            className="btn btn-secondary btn-block"
+            style={{ marginBottom: 8 }}
+            onClick={() => void rollRandom()}
+          >
+            {t('outfits.random')}
+          </button>
+          {quotaLeft != null && (
+            <p className="insight-hint" style={{ marginBottom: 14 }}>
+              {t('outfits.quotaLeft', { n: quotaLeft })}
+              {quotaLeft === 0 && (
+                <>
+                  {' · '}
+                  <button type="button" className="btn-text" onClick={() => navigate('/upgrade')}>
+                    {t('cutout.upgradeCta')}
+                  </button>
+                </>
+              )}
+            </p>
+          )}
+        </>
       )}
 
       {showRandom && randomPicks.length > 0 && (
         <section className="suggest-card">
           <div className="suggest-head">
-            <h3>随机一组</h3>
-            <button type="button" className="btn-text" onClick={rollRandom}>
-              换一组
+            <h3>{t('outfits.randomGroup')}</h3>
+            <button type="button" className="btn-text" onClick={() => void rollRandom()}>
+              {t('outfits.reroll')}
             </button>
           </div>
           <div className="suggest-thumbs">
@@ -165,7 +207,7 @@ export function Outfits() {
               style={{ flex: 1 }}
               onClick={() => setShowRandom(false)}
             >
-              关闭
+              {t('outfits.close')}
             </button>
             <button
               type="button"
@@ -174,7 +216,7 @@ export function Outfits() {
               disabled={saving}
               onClick={() => void saveRandom()}
             >
-              保存为搭配
+              {t('outfits.saveAs')}
             </button>
           </div>
         </section>
@@ -183,17 +225,17 @@ export function Outfits() {
       {loading ? null : outfits.length === 0 ? (
         <EmptyState
           icon="✨"
-          title="还没有搭配"
-          description="从衣橱里挑选几件单品，或试试随机搭配"
-          actionLabel="创建搭配"
+          title={t('outfits.empty')}
+          description={t('outfits.emptyHint')}
+          actionLabel={t('outfits.create')}
           onAction={() => navigate('/outfits/new')}
         />
       ) : filteredOutfits.length === 0 ? (
         <EmptyState
           icon="🏷️"
-          title="没有该场合的搭配"
-          description="试试切换场合，或新建一套并标注场合"
-          actionLabel="清除筛选"
+          title={t('outfits.empty')}
+          description=""
+          actionLabel={t('common.all')}
           onAction={() => setOccasionFilter('全部')}
         />
       ) : (
@@ -202,6 +244,7 @@ export function Outfits() {
             <OutfitCard
               key={o.id}
               outfit={o}
+              unnamed={t('outfits.unnamed')}
               onClick={() => navigate(`/outfits/${o.id}`)}
             />
           ))}
@@ -211,12 +254,24 @@ export function Outfits() {
       <button
         type="button"
         className="fab"
-        aria-label="创建搭配"
+        aria-label={t('outfits.create')}
         onClick={() => navigate('/outfits/new')}
       >
         +
       </button>
-      {toast && <Toast message={toast} onClose={() => setToast('')} />}
+      {toast && (
+        <Toast
+          message={toast}
+          onClose={() => setToast('')}
+        />
+      )}
+      {toast.includes('/') || toast.includes('limit') || toast.includes('用完') ? (
+        <div style={{ textAlign: 'center', marginTop: 8 }}>
+          <button type="button" className="btn btn-primary" onClick={() => navigate('/upgrade')}>
+            {t('profile.upgrade')}
+          </button>
+        </div>
+      ) : null}
     </div>
   )
 }

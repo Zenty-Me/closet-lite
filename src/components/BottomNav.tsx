@@ -1,9 +1,10 @@
 import { NavLink } from 'react-router-dom'
+import { useI18n } from '../i18n/I18nProvider'
 
-const tabs = [
+const tabDefs = [
   {
     to: '/',
-    label: '衣橱',
+    labelKey: 'nav.wardrobe',
     end: true,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
@@ -14,7 +15,7 @@ const tabs = [
   },
   {
     to: '/outfits',
-    label: '搭配',
+    labelKey: 'nav.outfits',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
         <circle cx="9" cy="9" r="3.5" />
@@ -24,7 +25,7 @@ const tabs = [
   },
   {
     to: '/inspire',
-    label: '灵感',
+    labelKey: 'nav.inspire',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
         <path d="M12 3v2M12 19v2M5 12H3M21 12h-2M6.3 6.3l-1.4-1.4M19.1 19.1l-1.4-1.4M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4" strokeLinecap="round" />
@@ -34,7 +35,7 @@ const tabs = [
   },
   {
     to: '/calendar',
-    label: '日历',
+    labelKey: 'nav.calendar',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
         <rect x="3" y="5" width="18" height="16" rx="2" />
@@ -44,7 +45,7 @@ const tabs = [
   },
   {
     to: '/me',
-    label: '我的',
+    labelKey: 'nav.me',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
         <circle cx="12" cy="8" r="3.5" />
@@ -55,17 +56,18 @@ const tabs = [
 ]
 
 export function BottomNav() {
+  const { t } = useI18n()
   return (
-    <nav className="bottom-nav" aria-label="主导航">
-      {tabs.map((t) => (
+    <nav className="bottom-nav" aria-label={t('nav.aria')}>
+      {tabDefs.map((tab) => (
         <NavLink
-          key={t.to}
-          to={t.to}
-          end={t.end}
+          key={tab.to}
+          to={tab.to}
+          end={tab.end}
           className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
         >
-          {t.icon}
-          {t.label}
+          {tab.icon}
+          {t(tab.labelKey)}
         </NavLink>
       ))}
     </nav>

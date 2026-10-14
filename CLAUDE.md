@@ -52,8 +52,12 @@ src/
 | 7 | `wishlist` store；单品 `needsWash`；备份 v6 含想买 |
 | 8 | `purchaseLink`；衣橱估值 / 购物深链 |
 | 9 | `wearLog.spend` 今日花费；换季提醒；CSV 导出；ROI/搭配成本 |
+| 10 | `seasons[]` multi-select |
+| 11 | `appMeta` store — monthly cutout/outfit quotas |
 
-Stores: `items`, `outfits`, `wearLogs`, `inspirations`. Soft-delete via `deletedAt`.
+Stores: `items`, `outfits`, `wearLogs`, `inspirations`, `wishlist`, `appMeta`. Soft-delete via `deletedAt`.
+
+Overseas pilot: see `docs/overseas-pilot.md` (i18n zh/en, quotas, Pro flag, Stripe stubs).
 
 ### Backups（我的 → 导出/导入）
 

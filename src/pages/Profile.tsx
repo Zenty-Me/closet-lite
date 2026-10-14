@@ -45,6 +45,8 @@ import {
   openUpdateAction,
   type RemoteAppVersion,
 } from '../utils/appUpdate'
+import { useI18n } from '../i18n/I18nProvider'
+import { getQuotaStatus, type QuotaStatus } from '../utils/quota'
 import {
   formatYuan,
   summarizeWardrobeValue,
@@ -54,7 +56,9 @@ import {
 
 export function Profile() {
   const navigate = useNavigate()
+  const { t, lang, setLang } = useI18n()
   const [itemCount, setItemCount] = useState(0)
+  const [quota, setQuota] = useState<QuotaStatus | null>(null)
   const [outfitCount, setOutfitCount] = useState(0)
   const [logCount, setLogCount] = useState(0)
   const [inspCount, setInspCount] = useState(0)
@@ -74,21 +78,21 @@ export function Profile() {
 
   const checkUpdate = async (manual = false) => {
     setUpdateBusy(true)
-    setUpdateMsg(manual ? '正在检查…' : '')
+    setUpdateMsg(manual ? t('profile.checkingManual') : '')
     setUpdateInfo(null)
     try {
       const remote = await fetchRemoteVersion()
       markAutoChecked()
       if (!remote) {
-        setUpdateMsg(manual ? '暂时无法获取更新信息，请检查网络' : '')
+        setUpdateMsg(manual ? t('profile.updateFailNet') : '')
       } else if (isNewerVersion(remote)) {
         setUpdateInfo(remote)
-        setUpdateMsg(`发现新版本 ${remote.version}`)
+        setUpdateMsg(t('profile.updateFound', { v: remote.version }))
       } else {
-        setUpdateMsg(manual ? `已是最新版（${getLocalVersion().version}）` : '')
+        setUpdateMsg(manual ? t('profile.updateLatest', { v: getLocalVersion().version }) : '')
       }
     } catch {
-      setUpdateMsg(manual ? '检查失败' : '')
+      setUpdateMsg(manual ? t('profile.updateFail') : '')
     }
     setUpdateBusy(false)
   }
@@ -115,6 +119,7 @@ export function Profile() {
       summarizeWardrobeValue(items, { includeRetired: loadSettings().includeRetiredInValue }),
     )
     setWishEstimate(summarizeWishlistValue(wishlist))
+    setQuota(await getQuotaStatus())
   }, [])
 
   useEffect(() => {
@@ -122,7 +127,8 @@ export function Profile() {
   }, [refresh])
 
   const updateSettings = (patch: Partial<AppSettings>) => {
-    const next = { ...settings, ...patch }
+    // Merge from disk so language/isPro toggled elsewhere are not overwritten
+    const next = { ...loadSettings(), ...settings, ...patch, language: lang }
     setSettings(next)
     saveSettings(next)
     if ('includeRetiredInValue' in patch || 'shopSearchKeyword' in patch) {
@@ -132,6 +138,10 @@ export function Profile() {
   }
 
   const exportBackup = async () => {
+    if (!loadSettings().isPro) {
+      setToast(t('profile.exportProOnly'))
+      return
+    }
     setBusy(true)
     try {
       const [items, outfits, wearLogs, inspirations, wishlist] = await Promise.all([
@@ -204,14 +214,18 @@ export function Profile() {
       a.download = `qing-yichu-backup-${new Date().toISOString().slice(0, 10)}.json`
       a.click()
       URL.revokeObjectURL(url)
-      setToast('备份已导出')
+      setToast(t('profile.exportDone'))
     } catch {
-      setToast('导出失败')
+      setToast(t('profile.exportFail'))
     }
     setBusy(false)
   }
 
   const importBackup = async (file: File) => {
+    if (!loadSettings().isPro) {
+      setToast(t('profile.importProOnly'))
+      return
+    }
     setBusy(true)
     try {
       const data = JSON.parse(await file.text()) as BackupData
@@ -319,9 +333,9 @@ export function Profile() {
         setSettings(next)
       }
       await refresh()
-      setToast('导入成功')
+      setToast(t('profile.importDone'))
     } catch {
-      setToast('导入失败，请检查备份文件')
+      setToast(t('profile.importFail'))
     }
     setBusy(false)
   }
@@ -334,50 +348,117 @@ export function Profile() {
         `qing-yichu-items-${new Date().toISOString().slice(0, 10)}.csv`,
         itemsToCsv(items),
       )
-      setToast('CSV 已导出')
+      setToast(t('profile.csvDone'))
     } catch {
-      setToast('导出失败')
+      setToast(t('profile.exportFail'))
     }
     setBusy(false)
   }
 
   const clearData = async () => {
-    if (!confirm('确定清空全部数据？请先导出备份。')) return
-    if (!confirm('再次确认：真的要清空吗？')) return
+    if (!confirm(t('profile.clearConfirm1'))) return
+    if (!confirm(t('profile.clearConfirm2'))) return
     await clearAllData()
     await refresh()
-    setToast('已清空全部数据')
+    setToast(t('profile.cleared'))
   }
+
+  const planIsPro = settings.isPro || Boolean(quota?.isPro)
 
   return (
     <div>
-      <h1 className="page-title">我的</h1>
-      <p className="page-sub">数据只存在你的手机里</p>
+      <h1 className="page-title">{t('profile.title')}</h1>
+      <p className="page-sub">{t('profile.sub')}</p>
 
       <div className="stat-grid stat-grid-4">
         <div className="stat-card">
           <div className="stat-num">{itemCount}</div>
-          <div className="stat-label">单品</div>
+          <div className="stat-label">{t('profile.stat.items')}</div>
         </div>
         <div className="stat-card">
           <div className="stat-num">{outfitCount}</div>
-          <div className="stat-label">搭配</div>
+          <div className="stat-label">{t('profile.stat.outfits')}</div>
         </div>
         <div className="stat-card">
           <div className="stat-num">{logCount}</div>
-          <div className="stat-label">穿着</div>
+          <div className="stat-label">{t('profile.stat.wears')}</div>
         </div>
         <div className="stat-card">
           <div className="stat-num">{inspCount}</div>
-          <div className="stat-label">灵感</div>
+          <div className="stat-label">{t('profile.stat.inspire')}</div>
         </div>
       </div>
 
+      <section className="insight-section plan-card">
+        <div className="plan-status-row">
+          <h3 className="insight-title" style={{ marginBottom: 0 }}>{t('profile.plan')}</h3>
+          <span className={`plan-badge${planIsPro ? ' pro' : ''}`}>
+            {planIsPro ? t('profile.planPro') : t('profile.planFree')}
+          </span>
+        </div>
+        {quota && (
+          <div style={{ marginTop: 10 }}>
+            <p className="insight-hint" style={{ marginBottom: 4 }}>
+              {planIsPro
+                ? t('profile.unlimited')
+                : t('profile.cutoutLeft', { n: quota.cutoutLeft, limit: quota.cutoutLimit })}
+            </p>
+            <p className="insight-hint" style={{ marginBottom: 8 }}>
+              {planIsPro
+                ? t('profile.unlimited')
+                : t('profile.outfitLeft', { n: quota.outfitLeft, limit: quota.outfitLimit })}
+            </p>
+          </div>
+        )}
+        <p className="insight-hint">
+          {t('profile.syncSoon')}
+          <span className="coming-soon-badge">Coming soon</span>
+        </p>
+        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            style={{ flex: 1 }}
+            onClick={() => navigate('/upgrade')}
+          >
+            {planIsPro ? t('profile.manage') : t('profile.upgrade')}
+          </button>
+        </div>
+        <button
+          type="button"
+          className="btn btn-ghost btn-block"
+          style={{ marginTop: 8 }}
+          onClick={() => navigate('/upgrade')}
+        >
+          {t('profile.creditPack')}
+        </button>
+      </section>
+
       <section className="insight-section">
-        <h3 className="insight-title">当前季节</h3>
-        <p className="insight-hint">开启季节模式后，衣橱默认显示该季节与四季单品</p>
+        <h3 className="insight-title">{t('profile.language')}</h3>
+        <div className="lang-switch">
+          <button
+            type="button"
+            className={`chip${lang === 'zh' ? ' active' : ''}`}
+            onClick={() => setLang('zh')}
+          >
+            {t('profile.langZh')}
+          </button>
+          <button
+            type="button"
+            className={`chip${lang === 'en' ? ' active' : ''}`}
+            onClick={() => setLang('en')}
+          >
+            {t('profile.langEn')}
+          </button>
+        </div>
+      </section>
+
+      <section className="insight-section">
+        <h3 className="insight-title">{t('profile.season')}</h3>
+        <p className="insight-hint">{t('profile.seasonHint')}</p>
         <label className="toggle-row">
-          <span>季节模式</span>
+          <span>{t('profile.seasonMode')}</span>
           <input
             type="checkbox"
             checked={settings.seasonMode}
@@ -385,7 +466,7 @@ export function Profile() {
           />
         </label>
         <label className="toggle-row">
-          <span>换季提醒</span>
+          <span>{t('profile.seasonReminder')}</span>
           <input
             type="checkbox"
             checked={settings.seasonReminder}
@@ -490,20 +571,34 @@ export function Profile() {
           <span>回收站</span>
           <span>恢复 / 彻底删除</span>
         </button>
-        <button type="button" className="menu-item" disabled={busy} onClick={() => void exportBackup()}>
-          <span>导出备份</span>
-          <span>JSON v7</span>
+        <button type="button" className="menu-item" disabled={busy} onClick={() => {
+          if (!loadSettings().isPro) {
+            setToast(t('profile.exportProOnly'))
+            navigate('/upgrade')
+            return
+          }
+          void exportBackup()
+        }}>
+          <span>{t('profile.export')}</span>
+          <span>{t('profile.exportMeta')}</span>
         </button>
         <button type="button" className="menu-item" disabled={busy} onClick={() => void exportCsv()}>
-          <span>导出单品 CSV</span>
-          <span>表格</span>
+          <span>{t('profile.exportCsv')}</span>
+          <span>{t('profile.exportCsvMeta')}</span>
         </button>
-        <button type="button" className="menu-item" disabled={busy} onClick={() => fileRef.current?.click()}>
-          <span>导入备份</span>
-          <span>支持 v1–v7</span>
+        <button type="button" className="menu-item" disabled={busy} onClick={() => {
+          if (!loadSettings().isPro) {
+            setToast(t('profile.importProOnly'))
+            navigate('/upgrade')
+            return
+          }
+          fileRef.current?.click()
+        }}>
+          <span>{t('profile.import')}</span>
+          <span>{t('profile.importMeta')}</span>
         </button>
         <button type="button" className="menu-item" onClick={() => void clearData()}>
-          <span style={{ color: 'var(--danger)' }}>清空全部数据</span>
+          <span style={{ color: 'var(--danger)' }}>{t('profile.clear')}</span>
           <span />
         </button>
       </div>
@@ -522,11 +617,12 @@ export function Profile() {
 
 
       <section className="insight-section">
-        <h3 className="insight-title">版本与更新</h3>
+        <h3 className="insight-title">{t('profile.version')}</h3>
         <p className="insight-hint">
-          当前 {APP_VERSION}
-          {isNativePlatform() ? ' · Android' : ' · 网页'}
-          。去背景模型已内置在安装包 / 站点资源中。
+          {t('profile.versionHint', {
+            v: APP_VERSION,
+            plat: isNativePlatform() ? t('profile.platNative') : t('profile.platWeb'),
+          })}
         </p>
         <button
           type="button"
@@ -534,27 +630,27 @@ export function Profile() {
           disabled={updateBusy}
           onClick={() => void checkUpdate(true)}
         >
-          {updateBusy ? '检查中…' : '检查更新'}
+          {updateBusy ? t('profile.checking') : t('profile.checkUpdate')}
         </button>
         {updateMsg && <p className="insight-hint" style={{ marginTop: 8 }}>{updateMsg}</p>}
         {updateInfo && (
           <div className="help-box" style={{ marginTop: 12 }}>
-            <h4>新版本 {updateInfo.version}</h4>
+            <h4>{t('profile.newVersion', { v: updateInfo.version })}</h4>
             {updateInfo.notes ? <p style={{ marginBottom: 8 }}>{updateInfo.notes}</p> : null}
             <button
               type="button"
               className="btn btn-primary btn-block"
               onClick={() => openUpdateAction(updateInfo)}
             >
-              {isNativePlatform() ? '下载并安装 APK' : '刷新网页获取更新'}
+              {isNativePlatform() ? t('profile.downloadApk') : t('profile.refreshWeb')}
             </button>
           </div>
         )}
       </section>
 
       <div className="help-box">
-        <h4>如何添加到主屏幕？</h4>
-        <p style={{ marginBottom: 8 }}>把「轻衣橱」装到手机桌面，像 App 一样打开。</p>
+        <h4>{t('profile.pwaHelpTitle')}</h4>
+        <p style={{ marginBottom: 8 }}>{t('profile.pwaHelp')}</p>
         <ol>
           <li>
             <strong>iPhone（Safari）</strong>：分享 →「添加到主屏幕」
@@ -564,12 +660,12 @@ export function Profile() {
           </li>
         </ol>
         <p style={{ marginTop: 12, color: 'var(--muted)' }}>
-          数据保存在本机 IndexedDB。换机前请导出备份。升级后旧数据会自动补全新字段。
+          {t('profile.privacyHint')}
         </p>
       </div>
 
       <p style={{ textAlign: 'center', marginTop: 24, fontSize: '0.75rem', color: 'var(--muted)' }}>
-        {'轻衣橱 v' + APP_VERSION}
+        {t('app.name') + ' v' + APP_VERSION}
       </p>
 
       {toast && <Toast message={toast} onClose={() => setToast('')} />}

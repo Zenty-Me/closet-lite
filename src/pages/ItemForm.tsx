@@ -18,8 +18,10 @@ import { Toast } from '../components/Toast'
 import { SubcategoryPicker } from '../components/SubcategoryPicker'
 import { ColorPicker } from '../components/ColorPicker'
 import { addSubcategoryLabel, loadSettings, saveSettings } from '../utils/settings'
+import { useI18n } from '../i18n/I18nProvider'
 
 export function ItemForm() {
+  const { t } = useI18n()
   const { id } = useParams()
   const [searchParams] = useSearchParams()
   const isNew = !id || id === 'new'
@@ -159,7 +161,7 @@ export function ItemForm() {
       <button type="button" className="back-btn" onClick={() => navigate(-1)}>
         ← 返回
       </button>
-      <h1 className="page-title">{isNew ? '添加单品' : '编辑单品'}</h1>
+      <h1 className="page-title">{isNew ? t('itemForm.new') : t('itemForm.edit')}</h1>
       {!isNew && (
         <p className="page-sub">
           {wearCount > 0 ? `已记录穿着 ${wearCount} 次` : '尚未出现在穿着记录中'}
@@ -396,7 +398,7 @@ export function ItemForm() {
           disabled={saving}
           onClick={() => void onSave()}
         >
-          {saving ? '保存中…' : '保存'}
+          {saving ? (t('itemForm.save') + '…') : t('itemForm.save')}
         </button>
       </div>
 

@@ -1,6 +1,6 @@
 {
-  "version": "0.2.0",
-  "build": 4,
+  "version": "0.3.0",
+  "build": 5,
   "apkUrl": "https://github.com/Zenty-Me/qing-yichu/releases/download/android-debug-latest/qing-yichu-debug.apk",
-  "notes": "去背景：Web Worker 防卡死、输入缩小、进度与空闲预热；季节/更新功能保持"
+  "notes": "Overseas pilot foundation: zh/en i18n, free monthly quotas, Pro flag + export gate, Stripe checkout stubs"
 }

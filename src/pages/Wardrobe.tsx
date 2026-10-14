@@ -21,6 +21,7 @@ import { Toast } from '../components/Toast'
 import { formatYuan, summarizeWardrobeValue } from '../utils/valueStats'
 import { seasonReminderMessage } from '../utils/seasonReminder'
 import { useBlobUrl } from '../hooks/useBlobUrl'
+import { useI18n } from '../i18n/I18nProvider'
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: 'created', label: '最近添加' },
@@ -56,6 +57,7 @@ function GroupThumb({ item, onClick }: { item: ClothingItem; onClick: () => void
 }
 
 export function Wardrobe() {
+  const { t } = useI18n()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [items, setItems] = useState<ClothingItem[]>([])
@@ -292,7 +294,7 @@ export function Wardrobe() {
         >
           {view === 'grouped' ? '▦' : '☰'}
         </button>
-        <h1 className="wardrobe-title">我的衣橱</h1>
+        <h1 className="wardrobe-title">{t('wardrobe.title')}</h1>
         <div className="wardrobe-topbar-right">
           <button
             type="button"
@@ -488,8 +490,8 @@ export function Wardrobe() {
       {loading ? null : items.length === 0 ? (
         <EmptyState
           icon="👗"
-          title="衣橱还是空的"
-          description="拍一张或从相册选一张，开始建立你的电子衣橱"
+          title={t('wardrobe.empty')}
+          description={t('wardrobe.emptyHint')}
           actionLabel="添加单品"
           onAction={() => navigate('/items/new')}
         />
@@ -632,7 +634,7 @@ export function Wardrobe() {
         </div>
       ) : (
         <div className="fab-cluster">
-          <button type="button" className="fab" aria-label="添加单品" onClick={() => navigate('/items/new')}>
+          <button type="button" className="fab" aria-label={t('wardrobe.add')} onClick={() => navigate('/items/new')}>
             +
           </button>
         </div>

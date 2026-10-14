@@ -2365,3 +2365,68 @@ img {
   border-radius: 4px;
   font-weight: 500;
 }
+
+
+/* —— Plan / Pro / i18n —— */
+.plan-card .coming-soon-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
+.plan-feature-list {
+  margin: 8px 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.9rem;
+  color: var(--ink);
+  line-height: 1.7;
+}
+
+.plan-price-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.plan-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.plan-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.plan-badge.pro {
+  background: var(--accent);
+  color: #fff;
+}
+
+.lang-switch {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.editor-status.muted {
+  color: var(--muted);
+}
+
+.quota-cta-inline {
+  margin-top: 6px;
+}
