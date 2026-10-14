@@ -13,7 +13,8 @@
     "build:native": "npm run fetch:bg-removal && VITE_BASE=/ npx tsc -b && VITE_BASE=/ npx vite build",
     "cap:sync": "npx cap sync android",
     "android:sync": "npm run build:native && npx cap sync android",
-    "android:open": "npx cap open android"
+    "android:open": "npx cap open android",
+    "verify:bg-removal": "node scripts/verify-capacitor-bg-removal.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.2",
