@@ -35,7 +35,7 @@ npm run android:open    # 打开 Android Studio → Build → Build APK(s)
 |------|------|
 | **衣橱** | 分组/网格、子分类、色块筛选、批量导入与多选编辑 |
 | **单品** | 详情页、多图、适合温度、状态、自定义色（色块 / 取色器 / 照片取色） |
-| **图片** | 旋转裁剪；去背景优先加载本站 `public/bg-removal`（isnet_quint8 ≈76MB），缺失时回退 CDN |
+| **图片** | 旋转裁剪；去背景（Web Worker + 输入缩小 + 进度/空闲预热）优先 `public/bg-removal`（isnet_quint8 ≈76MB），缺失时回退 CDN；原生端不回退 CDN |
 | **搭配 / 灵感 / 日历 / 我的** | 搭配拼图、灵感、穿着记录、备份 JSON v5、回收站 |
 
 ## 去背景模型（自托管）

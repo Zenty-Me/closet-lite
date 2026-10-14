@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { cropImage, rotateImage } from '../utils/image'
 import { useBlobUrl } from '../hooks/useBlobUrl'
-import { cutoutBusyMessage, cutoutErrorMessage, removeImageBackground } from '../utils/cutout'
+import {
+  cutoutBusyMessage,
+  cutoutErrorMessage,
+  removeImageBackground,
+  yieldToUi,
+} from '../utils/cutout'
 
 interface Props {
   blob: Blob
@@ -97,11 +102,15 @@ export function ImageEditor({
   }
 
   const cutout = async () => {
-    setBusy(cutoutBusyMessage())
+    // Paint disabled button + status before any heavy work / worker spawn.
+    setBusy(cutoutBusyMessage(0))
     setError('')
+    await yieldToUi()
     try {
       if (onOriginalChange && !originalBlob) onOriginalChange(blob)
-      const raw = await removeImageBackground(blob)
+      const raw = await removeImageBackground(blob, {
+        onProgress: (p) => setBusy(cutoutBusyMessage(p.percent)),
+      })
       onChange(raw)
     } catch (err) {
       console.error(err)
