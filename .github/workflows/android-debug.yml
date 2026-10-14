@@ -48,6 +48,17 @@ jobs:
           test "$CHUNK_COUNT" -ge 20
           # pruned set is ~80MB; fail if under 50MB (would ship a hollow APK again)
           test "$BYTES" -ge 50000000
+          # Capacitor html5mode: every chunk name must contain a '.' or Android serves index.html
+          python3 - <<'PY'
+          import json, sys
+          res = json.load(open("public/bg-removal/resources.json"))
+          for key, entry in res.items():
+              for c in entry.get("chunks") or []:
+                  if "." not in c["name"]:
+                      sys.exit(f"extensionless chunk (Capacitor SPA trap): {key} {c['name']}")
+          print("all chunk names have extensions")
+          PY
+          node scripts/verify-capacitor-bg-removal.mjs
           ls -lh public/bg-removal | head -30
       - name: Build web (native base)
         run: VITE_BASE=/ npx tsc -b && VITE_BASE=/ npx vite build
