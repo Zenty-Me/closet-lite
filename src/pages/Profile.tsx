@@ -18,7 +18,7 @@ import {
   normalizeOutfit,
   normalizeWearLog,
   type BackupData,
-  type BackupDataV6,
+  type BackupDataV7,
   type ClothingItem,
   type Inspiration,
   type Outfit,
@@ -35,6 +35,16 @@ import { WearInsight } from '../components/WearInsight'
 import { Toast } from '../components/Toast'
 import { openTaobao, openPinduoduo } from '../utils/shop'
 import { downloadTextFile, itemsToCsv } from '../utils/csvExport'
+import { APP_VERSION } from '../version'
+import {
+  fetchRemoteVersion,
+  getLocalVersion,
+  isNativePlatform,
+  isNewerVersion,
+  markAutoChecked,
+  openUpdateAction,
+  type RemoteAppVersion,
+} from '../utils/appUpdate'
 import {
   formatYuan,
   summarizeWardrobeValue,
@@ -57,7 +67,32 @@ export function Profile() {
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings())
   const [toast, setToast] = useState('')
   const [busy, setBusy] = useState(false)
+  const [updateBusy, setUpdateBusy] = useState(false)
+  const [updateInfo, setUpdateInfo] = useState<RemoteAppVersion | null>(null)
+  const [updateMsg, setUpdateMsg] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
+
+  const checkUpdate = async (manual = false) => {
+    setUpdateBusy(true)
+    setUpdateMsg(manual ? '正在检查…' : '')
+    setUpdateInfo(null)
+    try {
+      const remote = await fetchRemoteVersion()
+      markAutoChecked()
+      if (!remote) {
+        setUpdateMsg(manual ? '暂时无法获取更新信息，请检查网络' : '')
+      } else if (isNewerVersion(remote)) {
+        setUpdateInfo(remote)
+        setUpdateMsg(`发现新版本 ${remote.version}`)
+      } else {
+        setUpdateMsg(manual ? `已是最新版（${getLocalVersion().version}）` : '')
+      }
+    } catch {
+      setUpdateMsg(manual ? '检查失败' : '')
+    }
+    setUpdateBusy(false)
+  }
+
 
   const refresh = useCallback(async () => {
     const [items, logs, oc, lc, ic, wishlist] = await Promise.all([
@@ -152,8 +187,8 @@ export function Profile() {
           }
         }),
       )
-      const data: BackupDataV6 = {
-        version: 6,
+      const data: BackupDataV7 = {
+        version: 7,
         exportedAt: new Date().toISOString(),
         items: exportedItems,
         outfits: exportedOutfits,
@@ -180,7 +215,7 @@ export function Profile() {
     setBusy(true)
     try {
       const data = JSON.parse(await file.text()) as BackupData
-      if (!data || ![1, 2, 3, 4, 5, 6].includes(data.version) || !Array.isArray(data.items)) {
+      if (!data || ![1, 2, 3, 4, 5, 6, 7].includes(data.version) || !Array.isArray(data.items)) {
         throw new Error('invalid')
       }
       if (
@@ -210,7 +245,8 @@ export function Profile() {
             updatedAt: (rest as ClothingItem).updatedAt ?? Date.now(),
             category: (rest as ClothingItem).category,
             color: (rest as ClothingItem).color,
-            season: (rest as ClothingItem).season,
+            seasons: (rest as ClothingItem).seasons,
+            season: (rest as { season?: string }).season as never,
             id: (rest as ClothingItem).id,
           })
         }),
@@ -240,7 +276,7 @@ export function Profile() {
         }),
       )
       let inspirations: Inspiration[] = []
-      if ((data.version === 2 || data.version === 3 || data.version === 4 || data.version === 5 || data.version === 6) && 'inspirations' in data && Array.isArray(data.inspirations)) {
+      if ((data.version === 2 || data.version === 3 || data.version === 4 || data.version === 5 || data.version === 6 || data.version === 7) && 'inspirations' in data && Array.isArray(data.inspirations)) {
         inspirations = await Promise.all(
           data.inspirations.map(async (i) => {
             const { imageBase64, ...rest } = i
@@ -255,7 +291,7 @@ export function Profile() {
         )
       }
       let wishlistRows: WishlistItem[] = []
-      if (data.version === 6 && 'wishlist' in data && Array.isArray(data.wishlist)) {
+      if ((data.version === 6 || data.version === 7) && 'wishlist' in data && Array.isArray(data.wishlist)) {
         wishlistRows = await Promise.all(
           data.wishlist.map(async (w) => {
             const { imageBase64, ...rest } = w
@@ -270,7 +306,7 @@ export function Profile() {
         )
       }
       await importAllData(items, outfits, wearLogs, inspirations, wishlistRows)
-      if ((data.version === 5 || data.version === 6) && 'subcategoryTaxonomy' in data && data.subcategoryTaxonomy) {
+      if ((data.version === 5 || data.version === 6 || data.version === 7) && 'subcategoryTaxonomy' in data && data.subcategoryTaxonomy) {
         const cur = loadSettings()
         const merged = { ...cur.subcategoryTaxonomy }
         for (const [k, list] of Object.entries(data.subcategoryTaxonomy)) {
@@ -456,7 +492,7 @@ export function Profile() {
         </button>
         <button type="button" className="menu-item" disabled={busy} onClick={() => void exportBackup()}>
           <span>导出备份</span>
-          <span>JSON v6</span>
+          <span>JSON v7</span>
         </button>
         <button type="button" className="menu-item" disabled={busy} onClick={() => void exportCsv()}>
           <span>导出单品 CSV</span>
@@ -464,7 +500,7 @@ export function Profile() {
         </button>
         <button type="button" className="menu-item" disabled={busy} onClick={() => fileRef.current?.click()}>
           <span>导入备份</span>
-          <span>支持 v1–v6</span>
+          <span>支持 v1–v7</span>
         </button>
         <button type="button" className="menu-item" onClick={() => void clearData()}>
           <span style={{ color: 'var(--danger)' }}>清空全部数据</span>
@@ -484,6 +520,38 @@ export function Profile() {
         }}
       />
 
+
+      <section className="insight-section">
+        <h3 className="insight-title">版本与更新</h3>
+        <p className="insight-hint">
+          当前 {APP_VERSION}
+          {isNativePlatform() ? ' · Android' : ' · 网页'}
+          。去背景模型已内置在安装包 / 站点资源中。
+        </p>
+        <button
+          type="button"
+          className="btn btn-secondary btn-block"
+          disabled={updateBusy}
+          onClick={() => void checkUpdate(true)}
+        >
+          {updateBusy ? '检查中…' : '检查更新'}
+        </button>
+        {updateMsg && <p className="insight-hint" style={{ marginTop: 8 }}>{updateMsg}</p>}
+        {updateInfo && (
+          <div className="help-box" style={{ marginTop: 12 }}>
+            <h4>新版本 {updateInfo.version}</h4>
+            {updateInfo.notes ? <p style={{ marginBottom: 8 }}>{updateInfo.notes}</p> : null}
+            <button
+              type="button"
+              className="btn btn-primary btn-block"
+              onClick={() => openUpdateAction(updateInfo)}
+            >
+              {isNativePlatform() ? '下载并安装 APK' : '刷新网页获取更新'}
+            </button>
+          </div>
+        )}
+      </section>
+
       <div className="help-box">
         <h4>如何添加到主屏幕？</h4>
         <p style={{ marginBottom: 8 }}>把「轻衣橱」装到手机桌面，像 App 一样打开。</p>
@@ -501,7 +569,7 @@ export function Profile() {
       </div>
 
       <p style={{ textAlign: 'center', marginTop: 24, fontSize: '0.75rem', color: 'var(--muted)' }}>
-        轻衣橱 v2.0
+        {'轻衣橱 v' + APP_VERSION}
       </p>
 
       {toast && <Toast message={toast} onClose={() => setToast('')} />}

@@ -59,7 +59,9 @@ jobs:
           gh release delete "$TAG" --yes 2>/dev/null || true
           git tag -f "$TAG"
           git push -f origin "refs/tags/$TAG"
+          VER=$(node -p "require('./package.json').version")
+          NOTES=$(printf 'version:%s\n\n去背景模型已内置（约 80MB）。可直接安装的 debug 包（需允许安装未知来源）。\n网页版：https://zenty-me.github.io/qing-yichu/\n版本信息：https://zenty-me.github.io/qing-yichu/app-version.json' "$VER")
           gh release create "$TAG" dist-apk/qing-yichu-debug.apk \
             --title "轻衣橱 Android Debug APK" \
-            --notes "可直接安装的 debug 包（需允许安装未知来源）。网页版：https://zenty-me.github.io/qing-yichu/" \
+            --notes "$NOTES" \
             --latest=false

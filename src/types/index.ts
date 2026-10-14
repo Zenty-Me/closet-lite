@@ -97,7 +97,8 @@ export interface ClothingItem {
   subcategory: string
   /** Hex `#rrggbb` (legacy Chinese names migrated in normalizeItem) */
   color: string
-  season: Season
+  /** Multi-select seasons. 「四季」 alone = all-season. Legacy `season` migrated in normalizeItem. */
+  seasons: Season[]
   notes: string
   brand: string
   price: number | null
@@ -273,24 +274,40 @@ export interface BackupDataV6 {
   wishlist?: BackupWishlistV6[]
 }
 
-export type BackupData = BackupDataV1 | BackupDataV2 | BackupDataV3 | BackupDataV4 | BackupDataV5 | BackupDataV6
+/** v7: seasons[] multi-select (legacy season migrated on import) */
+export interface BackupDataV7 {
+  version: 7
+  exportedAt: string
+  items: BackupItemV4[]
+  outfits: BackupOutfitV4[]
+  wearLogs: BackupWearLogV4[]
+  inspirations: BackupInspirationV4[]
+  subcategoryTaxonomy?: Partial<Record<Category, string[]>>
+  wishlist?: BackupWishlistV6[]
+}
+
+export type BackupData = BackupDataV1 | BackupDataV2 | BackupDataV3 | BackupDataV4 | BackupDataV5 | BackupDataV6 | BackupDataV7
 
 export function normalizeItem(
   raw: Partial<ClothingItem> &
-    Pick<ClothingItem, 'id' | 'imageBlob' | 'category' | 'color' | 'season' | 'createdAt' | 'updatedAt'>,
+    Pick<ClothingItem, 'id' | 'imageBlob' | 'category' | 'color' | 'createdAt' | 'updatedAt'> & {
+      season?: Season
+      seasons?: Season[]
+    },
 ): ClothingItem {
   // Migrate old "裙子" stays; unknown categories fall back carefully
   let category = raw.category
   if (!(CATEGORIES as readonly string[]).includes(category)) {
     category = '其他'
   }
+  const seasons = normalizeSeasonsField(raw.seasons, raw.season)
   return {
     id: raw.id,
     name: raw.name ?? '',
     category,
     subcategory: typeof raw.subcategory === 'string' ? raw.subcategory.trim() : '',
     color: normalizeColorHex(raw.color),
-    season: raw.season,
+    seasons,
     notes: raw.notes ?? '',
     brand: raw.brand ?? '',
     price: raw.price ?? null,
@@ -312,6 +329,21 @@ export function normalizeItem(
     updatedAt: raw.updatedAt,
     deletedAt: raw.deletedAt ?? null,
   }
+}
+
+function normalizeSeasonsField(seasonsRaw: unknown, legacySeason: unknown): Season[] {
+  if (Array.isArray(seasonsRaw)) {
+    const cleaned = seasonsRaw.filter((s): s is Season => (SEASONS as readonly string[]).includes(s as string))
+    if (cleaned.length) {
+      const specific = cleaned.filter((s) => s !== '四季')
+      if (cleaned.includes('四季') && specific.length === 0) return ['四季']
+      if (specific.length) return specific
+    }
+  }
+  if (typeof legacySeason === 'string' && (SEASONS as readonly string[]).includes(legacySeason)) {
+    return [legacySeason as Season]
+  }
+  return ['四季']
 }
 
 export function normalizeOutfit(raw: Outfit): Outfit {

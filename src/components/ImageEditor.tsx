@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { cropImage, rotateImage } from '../utils/image'
 import { useBlobUrl } from '../hooks/useBlobUrl'
-import { removeImageBackground } from '../utils/cutout'
+import { cutoutBusyMessage, cutoutErrorMessage, removeImageBackground } from '../utils/cutout'
 
 interface Props {
   blob: Blob
@@ -97,7 +97,7 @@ export function ImageEditor({
   }
 
   const cutout = async () => {
-    setBusy('正在去背景（首次需下载模型，请稍候）…')
+    setBusy(cutoutBusyMessage())
     setError('')
     try {
       if (onOriginalChange && !originalBlob) onOriginalChange(blob)
@@ -105,7 +105,7 @@ export function ImageEditor({
       onChange(raw)
     } catch (err) {
       console.error(err)
-      setError('去背景失败，可稍后重试。需联网下载本地模型。')
+      setError(cutoutErrorMessage(err))
     }
     setBusy('')
   }

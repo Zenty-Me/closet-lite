@@ -8,6 +8,7 @@ import {
   type Category,
   type Season,
 } from '../types'
+import { formatSeasons, toggleSeason } from '../utils/seasons'
 import { getAllWearLogs, getItem, saveItem, softDeleteItem, uid } from '../db'
 import { buildWearCounts } from '../utils/wearStats'
 import { compressImage } from '../utils/image'
@@ -29,7 +30,7 @@ export function ItemForm() {
   const [category, setCategory] = useState<Category>('上衣')
   const [subcategory, setSubcategory] = useState('')
   const [color, setColor] = useState('#1c1916')
-  const [season, setSeason] = useState<Season>('四季')
+  const [seasons, setSeasons] = useState<Season[]>(['四季'])
   const [notes, setNotes] = useState('')
   const [brand, setBrand] = useState('')
   const [price, setPrice] = useState('')
@@ -67,7 +68,7 @@ export function ItemForm() {
       setCategory(item.category)
       setSubcategory(item.subcategory ?? '')
       setColor(normalizeColorHex(item.color))
-      setSeason(item.season)
+      setSeasons(item.seasons?.length ? item.seasons : ['四季'])
       setNotes(item.notes)
       setBrand(item.brand)
       setPrice(item.price != null ? String(item.price) : '')
@@ -120,7 +121,7 @@ export function ItemForm() {
       category,
       subcategory: subcategory.trim(),
       color: normalizeColorHex(color),
-      season,
+      seasons,
       notes: notes.trim(),
       brand: brand.trim(),
       price: priceNum != null && !Number.isNaN(priceNum) ? priceNum : null,
@@ -228,14 +229,17 @@ export function ItemForm() {
       </div>
 
       <div className="form-group">
-        <div className="form-label">季节</div>
+        <div className="form-label">季节（可多选）</div>
+        <p className="insight-hint" style={{ marginTop: 0, marginBottom: 8 }}>
+          点「四季」表示全年；选具体季节会取消四季。当前：{formatSeasons(seasons)}
+        </p>
         <div className="chip-select">
           {SEASONS.map((s) => (
             <button
               key={s}
               type="button"
-              className={`chip${season === s ? ' active' : ''}`}
-              onClick={() => setSeason(s)}
+              className={`chip${seasons.includes(s) ? ' active' : ''}`}
+              onClick={() => setSeasons((prev) => toggleSeason(prev, s))}
             >
               {s}
             </button>

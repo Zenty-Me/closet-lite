@@ -18,7 +18,7 @@ export function itemsToCsv(items: ClothingItem[]): string {
       it.price != null ? String(it.price) : '',
       it.brand,
       it.status,
-      it.season,
+      it.seasons?.join("、") ?? "",
       it.needsWash ? '是' : '否',
       it.purchaseLink,
     ]

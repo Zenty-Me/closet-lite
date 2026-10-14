@@ -12,7 +12,7 @@ interface Props {
 }
 
 export function ItemCard({ item, onClick, wearCount, selectMode, selected }: Props) {
-  const url = useBlobUrl(item.imageBlob)
+  const url = useBlobUrl(item.imageBlob, item.updatedAt)
   const subtitle = [item.brand, item.category, colorLabel(item.color)].filter(Boolean).join('  ')
   return (
     <button
