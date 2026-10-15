@@ -19,7 +19,7 @@ const Ctx = createContext<I18nCtx | null>(null)
 
 function readLang(): Lang {
   const lang = loadSettings().language
-  return isLang(lang) ? lang : 'zh'
+  return isLang(lang) ? lang : 'en'
 }
 
 export function I18nProvider({ children }: { children: ReactNode }) {

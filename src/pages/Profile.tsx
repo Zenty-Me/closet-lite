@@ -211,7 +211,7 @@ export function Profile() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `qing-yichu-backup-${new Date().toISOString().slice(0, 10)}.json`
+      a.download = `closet-lite-backup-${new Date().toISOString().slice(0, 10)}.json`
       a.click()
       URL.revokeObjectURL(url)
       setToast(t('profile.exportDone'))
@@ -345,7 +345,7 @@ export function Profile() {
     try {
       const items = await getAllItems(true)
       downloadTextFile(
-        `qing-yichu-items-${new Date().toISOString().slice(0, 10)}.csv`,
+        `closet-lite-items-${new Date().toISOString().slice(0, 10)}.csv`,
         itemsToCsv(items),
       )
       setToast(t('profile.csvDone'))
