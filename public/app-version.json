@@ -1,6 +1,6 @@
 {
   "version": "0.3.0",
   "build": 5,
-  "apkUrl": "https://github.com/Zenty-Me/qing-yichu/releases/download/android-debug-latest/qing-yichu-debug.apk",
-  "notes": "Overseas pilot foundation: zh/en i18n, free monthly quotas, Pro flag + export gate, Stripe checkout stubs"
+  "apkUrl": "https://github.com/Zenty-Me/closet-lite/releases/download/android-debug-latest/closet-lite-debug.apk",
+  "notes": "Closet Lite overseas freemium pilot \u2014 i18n, monthly quotas, Pro upgrade stubs"
 }

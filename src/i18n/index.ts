@@ -14,7 +14,7 @@ export function isLang(v: unknown): v is Lang {
 
 export function getLang(): Lang {
   const lang = loadSettings().language
-  return isLang(lang) ? lang : 'zh'
+  return isLang(lang) ? lang : 'en'
 }
 
 export function translate(
@@ -22,8 +22,8 @@ export function translate(
   key: string,
   vars?: Record<string, string | number>,
 ): string {
-  const dict = DICTS[lang] ?? zh
-  let s = dict[key] ?? zh[key] ?? key
+  const dict = DICTS[lang] ?? en
+  let s = dict[key] ?? en[key] ?? zh[key] ?? key
   if (vars) {
     for (const [k, v] of Object.entries(vars)) {
       s = s.replaceAll(`{{${k}}}`, String(v))

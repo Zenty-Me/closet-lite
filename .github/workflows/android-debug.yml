@@ -94,21 +94,21 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p dist-apk
-          cp android/app/build/outputs/apk/debug/*.apk dist-apk/qing-yichu-debug.apk
+          cp android/app/build/outputs/apk/debug/*.apk dist-apk/closet-lite-debug.apk
           ls -lh dist-apk/
-          BYTES=$(stat -c%s dist-apk/qing-yichu-debug.apk)
+          BYTES=$(stat -c%s dist-apk/closet-lite-debug.apk)
           echo "APK bytes: $BYTES"
           # Uncompressed models ~79MB; zip-compressed APK lands ~45–50MB.
           # Old hollow build was ~4.6MB — require >> that and prove chunks are inside.
           test "$BYTES" -ge 40000000
-          CHUNK_IN_APK=$(unzip -l dist-apk/qing-yichu-debug.apk | grep -c 'assets/public/bg-removal/' || true)
+          CHUNK_IN_APK=$(unzip -l dist-apk/closet-lite-debug.apk | grep -c 'assets/public/bg-removal/' || true)
           echo "bg-removal entries in APK: $CHUNK_IN_APK"
           test "$CHUNK_IN_APK" -ge 20
-          unzip -l dist-apk/qing-yichu-debug.apk | grep 'assets/public/bg-removal/' | head -10 || true
+          unzip -l dist-apk/closet-lite-debug.apk | grep 'assets/public/bg-removal/' | head -10 || true
       - uses: actions/upload-artifact@v4
         with:
-          name: qing-yichu-debug
-          path: dist-apk/qing-yichu-debug.apk
+          name: closet-lite-debug
+          path: dist-apk/closet-lite-debug.apk
       - name: Publish to GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -118,8 +118,8 @@ jobs:
           git tag -f "$TAG"
           git push -f origin "refs/tags/$TAG"
           VER=$(node -p "require('./package.json').version")
-          NOTES=$(printf 'version:%s\n\n去背景模型已内置（约 80MB）。可直接安装的 debug 包（需允许安装未知来源）。\n网页版：https://zenty-me.github.io/qing-yichu/\n版本信息：https://zenty-me.github.io/qing-yichu/app-version.json' "$VER")
-          gh release create "$TAG" dist-apk/qing-yichu-debug.apk \
-            --title "轻衣橱 Android Debug APK" \
+          NOTES=$(printf 'version:%s\n\nBundled bg-removal model (~80MB). Debug APK (allow unknown sources).\nWeb: https://zenty-me.github.io/closet-lite/\nVersion: https://zenty-me.github.io/closet-lite/app-version.json' "$VER")
+          gh release create "$TAG" dist-apk/closet-lite-debug.apk \
+            --title "Closet Lite Android Debug APK" \
             --notes "$NOTES" \
             --latest=false

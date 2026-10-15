@@ -2,5 +2,5 @@
 export const APP_VERSION = '0.3.0'
 export const APP_BUILD = 5
 export const APK_DOWNLOAD_URL =
-  'https://github.com/Zenty-Me/qing-yichu/releases/download/android-debug-latest/qing-yichu-debug.apk'
-export const APP_VERSION_URL = 'https://zenty-me.github.io/qing-yichu/app-version.json'
+  'https://github.com/Zenty-Me/closet-lite/releases/download/android-debug-latest/closet-lite-debug.apk'
+export const APP_VERSION_URL = 'https://zenty-me.github.io/closet-lite/app-version.json'

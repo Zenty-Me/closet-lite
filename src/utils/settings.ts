@@ -2,7 +2,7 @@ import type { Category, SeasonFilter } from '../types'
 import { CATEGORIES } from '../types'
 import { currentSeason } from './suggest'
 
-const KEY = 'qing-yichu-settings'
+const KEY = 'closet-lite-settings'
 
 export type SubcategoryTaxonomy = Partial<Record<Category, string[]>>
 
@@ -18,7 +18,7 @@ export interface AppSettings {
   shopSearchKeyword: string
   /** 换季提醒横幅 */
   seasonReminder: boolean
-  /** UI language; default zh for existing users */
+  /** UI language; default en for overseas Closet Lite */
   language: 'zh' | 'en'
   /**
    * Local Pro unlock until Stripe is wired.
@@ -35,7 +35,7 @@ function defaults(): AppSettings {
     includeRetiredInValue: false,
     shopSearchKeyword: '',
     seasonReminder: true,
-    language: 'zh',
+    language: 'en',
     isPro: false,
   }
 }
@@ -74,7 +74,7 @@ export function loadSettings(): AppSettings {
       includeRetiredInValue: Boolean(parsed.includeRetiredInValue),
       shopSearchKeyword: typeof parsed.shopSearchKeyword === 'string' ? parsed.shopSearchKeyword : '',
       seasonReminder: parsed.seasonReminder !== false,
-      language: parsed.language === 'en' ? 'en' : 'zh',
+      language: parsed.language === 'zh' ? 'zh' : 'en',
       isPro: Boolean(parsed.isPro),
     }
   } catch {

@@ -1,3 +1,7 @@
+# Closet Lite
+
+Overseas freemium pilot. See README.md.
+
 # CLAUDE.md — 轻衣橱 (qing-yichu)
 
 给后续 Claude / 自动化代理用的项目说明。改代码前先读本文件与 `DESIGN.md`。

@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
-  appId: 'com.zenty.qingyichu',
-  appName: '轻衣橱',
+  appId: 'com.zenty.closetlite',
+  appName: 'Closet Lite',
   webDir: 'dist',
   server: {
     androidScheme: 'https',
